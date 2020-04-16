@@ -159,26 +159,26 @@ ul.list-group {
     transform: translate(50%,-50%) rotate(90deg) translate(0,50%);
 }
 
-.playedcards.trick {
+#playedcards.trick {
     transform: translate(-50%,-50%) scale(0.1);
     transition-duration: 1.3s;
     transition-timing-function: ease-in;
     transition-delay: 1.0s;
 }
 
-.playedcards.W {
+#playedcards.W {
     left: 0%;
     top: 50%;
 }
-.playedcards.E {
+#playedcards.E {
     left: 100%;
     top: 50%;
 }
-.playedcards.S {
+#playedcards.S {
     left: 50%;
     top: 100%;
 }
-.playedcards.N {
+#playedcards.N {
     left: 50%;
     top: 0%;
 }
@@ -230,7 +230,7 @@ ul.list-group {
     top: 10px;
 }
 
-#trump {
+#bid {
     position: absolute;
     left: 10px;
     top: 10px;

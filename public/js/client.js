@@ -18,7 +18,7 @@ var hand=[]; // my hand
 var auto=(name[0]=="@"); // TEMP obviously
 var animation=false; // the little trick animation
 
-var dirs=["S","W","N","E"]; var cols=["red","green","blue","yellow"]; var prefix="cards/";
+var dirs=["S","W","N","E"]; var cols=["red","green","blue","yellow"]; var prefix="images/cards/";
 
 var mysuit=-1;
 var mybid=-1;
@@ -104,7 +104,7 @@ function drawHandCards() {
 	if (i!=pos) // don't draw one's cards
 	    for (var j=0; j<8; j++)
 		updatePic(document.getElementById(dirs[k]+j),
-			  j<gameInfo.numcards[i] ? "images/"+prefix+cols[i]+"_back.png" : "images/"+prefix+"cardholder.png");
+			  j<gameInfo.numcards[i] ? prefix+cols[i]+"_back.png" : prefix+"cardholder.png");
     }
 }
 
@@ -116,10 +116,10 @@ function redrawHandCards() { // same as drawHandCards except do minimal change
 	if (i!=pos) // don't draw one's cards
 	    if (oldgameInfo.numcards[i]<gameInfo.numcards[i])
 		for (var j=oldgameInfo.numcards[i]; j<gameInfo.numcards[i]; j++)
-		    updatePic(document.getElementById(dirs[k]+j),"images/"+prefix+cols[i]+"_back.png");
+		    updatePic(document.getElementById(dirs[k]+j),prefix+cols[i]+"_back.png");
 	    else
 	      for (var j=gameInfo.numcards[i]; j<oldgameInfo.numcards[i]; j++)
-		    updatePic(document.getElementById(dirs[k]+j),"images/"+prefix+"cardholder.png");
+		    updatePic(document.getElementById(dirs[k]+j),prefix+"cardholder.png");
     }
 }
 
@@ -130,8 +130,8 @@ function drawPlayedCards() {
 	// the played cards
 	if ((oldgameInfo===null)||(gameInfo.playedCards[i]!==oldgameInfo.playedCards[i]))
 	updatePic(document.getElementById(dirs[k]+"P"), // the played area
-		  gameInfo.playedCards[i]>=0 ? "images/"+prefix+"card"+gameInfo.playedCards[i]+".png"
-		  : "images/"+prefix+"cardholder.png");
+		  gameInfo.playedCards[i]>=0 ? prefix+"card"+gameInfo.playedCards[i]+".png"
+		  : prefix+"cardholder.png");
     }
 }
 
@@ -283,7 +283,7 @@ socket.on("hand", function(h) {
 	var cardel=document.getElementById(dirs[0]+i);
 	if (i<hand.length)
 	{
-	    updatePic(cardel,"images/"+prefix+"card"+hand[i]+".png");
+	    updatePic(cardel,prefix+"card"+hand[i]+".png");
 	    cardel.alt=hand[i];
 	    cardel.onclick=function() { play(+this.alt); } // eww
 	}
@@ -408,7 +408,7 @@ function play(c) {
 	    cardel.classList.remove("active");
 	}
 	var cardel=document.getElementById(dirs[0]+"P"); // the played area
-	cardel.src="images/"+prefix+"card"+c+".png";
+	cardel.src=prefix+"card"+c+".png";
 	
 	socket.emit("play", {
 	    name: name,
