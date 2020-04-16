@@ -100,6 +100,7 @@ ul.list-group {
     left: 0px;
     top: 50%;
     transform: translate(-50%,-50%) rotate(90deg) translate(0,-50%) translate(0,-40px);
+    white-space: nowrap;
 }
 
 #biddingW {
@@ -107,7 +108,6 @@ ul.list-group {
     left: 150px;
     top: 50%;
     transform: translate(0%,-50%);
-    white-space: nowrap;
 }
 
 #cardareaE {
