@@ -163,7 +163,7 @@ socket.on("gameInfo", function(gameInfo1) {
     oldgameInfo=gameInfo; gameInfo=gameInfo1;
 
     // general stuff (TEMP?)
-    document.getElementById("trump").innerHTML= gameInfo.playing ? gameInfo.bid +" "+suitshtml[gameInfo.trump] : "";
+    document.getElementById("bid").innerHTML= gameInfo.playing ? gameInfo.bid +" "+suitshtml[gameInfo.trump] : "";
     document.getElementById("score1").innerHTML=gameInfo.scores[0];
     document.getElementById("score2").innerHTML=gameInfo.scores[1];
 

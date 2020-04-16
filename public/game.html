@@ -24,17 +24,17 @@
 	  <tr><td id="score1"></td><td id="score2"></td></tr>
 	</table>
 	</div>
-        <div class="col-md-6 well" style="min-height:1000px;">
+        <div class="col-md-6 well" style="min-height:1000px;min-width:1000px">
 	  <div class="ready"><label class="switch"><input type="checkbox" id="ready" onclick="ready(this.checked);"><span class="slider round"></span></label></div>
-	  <div class="trump" id="trump"></div>
-	  <div class="playedcards" hidden id="playedcards">
+	  <div id="bid"></div>
+	  <div hidden id="playedcards">
 	    <img src="images/cards/cardholder.png" class="card" id="NP"><br/>
 	    <img src="images/cards/cardholder.png" class="card" id="WP">
 	    <img src="images/cards/cardholder.png" class="card" id="EP"><br/>
 	    <img src="images/cards/cardholder.png" class="card" id="SP"><br/>
 	  </div>
-	  <div class="Nname" id="Nname"></div>
-	  <div class="cardareaN">
+	  <div id="Nname"></div>
+	  <div id="cardareaN">
 	    <img src="images/cards/cardholder.png" class="card" id="N0">
 	    <img src="images/cards/cardholder.png" class="card" id="N1">
 	    <img src="images/cards/cardholder.png" class="card" id="N2">
@@ -44,7 +44,7 @@
 	    <img src="images/cards/cardholder.png" class="card" id="N6">
 	    <img src="images/cards/cardholder.png" class="card" id="N7">
 	  </div>
-	  <div class="biddingN" id="biddingN">
+	  <div id="biddingN">
 	    <button class="btn btn-default" id="80N" disabled="disabled">80</button>
 	    <button class="btn btn-default" id="90N" disabled="disabled">90</button>
 	    <button class="btn btn-default" id="100N" disabled="disabled">100</button>
@@ -62,8 +62,8 @@
 	    <button class="btn btn-default" id="suit3N" disabled="disabled" style="color:black;font-size:200%">&clubs;</button>
 	    <button class="btn btn-default" id="passN" disabled="disabled" style="float: right;font-size:200%">PASS</button>
 	  </div>
-	  <div class="Wname" id="Wname"></div>
-	  <div class="cardareaW">
+	  <div id="Wname"></div>
+	  <div id="cardareaW">
 	    <img src="images/cards/cardholder.png" class="card" id="W0">
 	    <img src="images/cards/cardholder.png" class="card" id="W1">
 	    <img src="images/cards/cardholder.png" class="card" id="W2">
@@ -73,7 +73,7 @@
 	    <img src="images/cards/cardholder.png" class="card" id="W6">
 	    <img src="images/cards/cardholder.png" class="card" id="W7">
 	  </div>
-	  <div class="biddingW" id="biddingW">
+	  <div id="biddingW">
 	    <button class="btn btn-default" id="80W" disabled="disabled">80</button>
 	    <button class="btn btn-default" id="suit0W" disabled="disabled" style="float:right;color:black;font-size:200%">&spades;</button><br/>
 	    <button class="btn btn-default" id="90W" disabled="disabled">90</button><br/>
@@ -90,8 +90,8 @@
 	    <button class="btn btn-default" id="passW" disabled="disabled" style="float:right;padding:0"><span style="font-size:200%;writing-mode:vertical-rl;text-orientation:upright">PASS</span></button><br/>
 	    <button class="btn btn-default" id="allW" disabled="disabled">all</button>
 	  </div>
-	  <div class="Ename" id="Ename"></div>
-	  <div class="cardareaE">
+	  <div id="Ename" id="Ename"></div>
+	  <div id="cardareaE">
 	    <img src="images/cards/cardholder.png" class="card" id="E0">
 	    <img src="images/cards/cardholder.png" class="card" id="E1">
 	    <img src="images/cards/cardholder.png" class="card" id="E2">
@@ -101,7 +101,7 @@
 	    <img src="images/cards/cardholder.png" class="card" id="E6">
 	    <img src="images/cards/cardholder.png" class="card" id="E7">
 	  </div>
-	  <div class="biddingE" id="biddingE">
+	  <div id="biddingE">
 	    <button class="btn btn-default" id="80E" disabled="disabled">80</button>
 	    <button class="btn btn-default" id="suit0E" disabled="disabled" style="float:right;color:black;font-size:200%">&spades;</button><br/>
 	    <button class="btn btn-default" id="90E" disabled="disabled">90</button><br/>
@@ -118,8 +118,8 @@
 	    <button class="btn btn-default" id="passE" disabled="disabled" style="float:right;padding:0"><span style="font-size:200%;writing-mode:vertical-rl;text-orientation:upright">PASS</span></button><br/>
 	    <button class="btn btn-default" id="allE" disabled="disabled">all</button>
 </div>
-	  <div class="Sname" id="Sname"></div>
-	  <div class="cardareaS">
+	  <div id="Sname"></div>
+	  <div id="cardareaS">
 	    <img src="images/cards/cardholder.png" class="card" id="S0">
 	    <img src="images/cards/cardholder.png" class="card" id="S1">
 	    <img src="images/cards/cardholder.png" class="card" id="S2">
@@ -129,7 +129,7 @@
 	    <img src="images/cards/cardholder.png" class="card" id="S6">
 	    <img src="images/cards/cardholder.png" class="card" id="S7">
 	  </div>
-	  <div class="biddingS" id="biddingS">
+	  <div id="biddingS">
 	    <button class="btn btn-default" id="suit0S" onclick="bidsuit(0);" disabled="disabled" style="color:black;font-size:200%">&spades;</button>
 	    <button class="btn btn-default" id="suit1S" onclick="bidsuit(1);" disabled="disabled" style="color:red;font-size:200%">&hearts;</button>
 	    <button class="btn btn-default" id="suit2S" onclick="bidsuit(2);" disabled="disabled" style="color:red;font-size:200%">&diams;</button>
