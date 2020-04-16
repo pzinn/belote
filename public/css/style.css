@@ -95,9 +95,9 @@ ul.list-group {
 
 .cardareaW {
     position: absolute;
-    left: 40px;
+    left: 0px;
     top: 50%;
-    transform: translate(0%,-50%);
+    transform: translate(-50%,-50%) rotate(90deg) translate(0,-50%) translate(0,-40px);
 }
 
 .biddingW {
@@ -109,9 +109,9 @@ ul.list-group {
 
 .cardareaE {
     position: absolute;
-    right: 40px;
+    right: 0px;
     top: 50%;
-    transform: translate(0%,-50%);
+    transform: translate(50%,-50%) rotate(90deg) translate(0,50%) translate(0,40px);
 }
 
 .biddingE {
@@ -139,7 +139,33 @@ ul.list-group {
     left: 50%;
     top: 50%;
     transform: translate(-50%,-50%);
-    text-align: center;
+    width: 275px;
+    height: 275px;
+}
+
+#NP {
+    position:absolute;
+    top:0px;
+    left:50%;
+    transform: translate(-50%,0%);
+}
+#WP {
+    position:absolute;
+    left:0px;
+    top:50%;
+    transform: translate(-50%,-50%) rotate(90deg) translate(0,-50%);
+}
+#SP {
+    position:absolute;
+    bottom:0px;
+    left:50%;
+    transform: translate(-50%,0%);
+}
+#EP {
+    position:absolute;
+    right:0px;
+    top:50%;
+    transform: translate(50%,-50%) rotate(90deg) translate(0,50%);
 }
 
 .playedcards.trick {
