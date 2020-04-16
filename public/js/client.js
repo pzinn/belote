@@ -26,6 +26,17 @@ var bidlist=["80","90","100","110","120","130","140","150","160","all"];
 
 document.getElementById("room-title").innerHTML=room;
 
+// preload cards
+var preloadLink;
+for (var i=0; i<32; i++)
+{
+    preloadLink = document.createElement("link");
+    preloadLink.href = prefix+"card"+i+".png";
+    preloadLink.rel = "preload";
+    preloadLink.as = "image";
+    document.head.appendChild(preloadLink);
+}
+
 // fires when client successfully connects to the server
 socket.on("connect", function() {
     console.log("Connected to Socket I/O Server!");
