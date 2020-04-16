@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta content="IE=edge" http-equiv="X-UA-Compatible">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <title>Belote</title>
+    <link href="/images/logo.png" rel="icon" type="image/png"/>
+
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+    <link href="/css/toggle.css" rel="stylesheet">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.12.0/moment.min.js"></script>
+  </head>
+  <body>
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-1 well">
+	<table class="scores" id="scores">
+	  <tr><th id="scoresname1"></th><th id="scoresname2"></th></tr>
+	  <tr><td id="score1"></td><td id="score2"></td></tr>
+	</table>
+	</div>
+        <div class="col-md-6 well" style="min-height:1000px;">
+	  <div class="ready"><label class="switch"><input type="checkbox" id="ready" onclick="ready(this.checked);"><span class="slider round"></span></label></div>
+	  <div class="trump" id="trump"></div>
+	  <div class="playedcards" hidden id="playedcards">
+	    <img src="images/cards/cardholder.png" class="card" id="NP"><br/>
+	    <img src="images/cards-rotated/cardholder.png" class="card" id="WP">
+	    <img src="images/cards-rotated/cardholder.png" class="card" id="EP"><br/>
+	    <img src="images/cards/cardholder.png" class="card" id="SP"><br/>
+	  </div>
+	  <div class="Nname" id="Nname"></div>
+	  <div class="cardareaN">
+	    <img src="images/cards/cardholder.png" class="card" id="N0">
+	    <img src="images/cards/cardholder.png" class="card" id="N1">
+	    <img src="images/cards/cardholder.png" class="card" id="N2">
+	    <img src="images/cards/cardholder.png" class="card" id="N3">
+	    <img src="images/cards/cardholder.png" class="card" id="N4">
+	    <img src="images/cards/cardholder.png" class="card" id="N5">
+	    <img src="images/cards/cardholder.png" class="card" id="N6">
+	    <img src="images/cards/cardholder.png" class="card" id="N7">
+	  </div>
+	  <div class="biddingN" id="biddingN">
+	    <button class="btn btn-default" id="80N" disabled="disabled">80</button>
+	    <button class="btn btn-default" id="90N" disabled="disabled">90</button>
+	    <button class="btn btn-default" id="100N" disabled="disabled">100</button>
+	    <button class="btn btn-default" id="110N" disabled="disabled">110</button>
+	    <button class="btn btn-default" id="120N" disabled="disabled">120</button>
+	    <button class="btn btn-default" id="130N" disabled="disabled">130</button>
+	    <button class="btn btn-default" id="140N" disabled="disabled">140</button>
+	    <button class="btn btn-default" id="150N" disabled="disabled">150</button>
+	    <button class="btn btn-default" id="160N" disabled="disabled">160</button>
+	    <button class="btn btn-default" id="allN" disabled="disabled">all</button>
+	    <br/>
+	    <button class="btn btn-default" id="suit0N" disabled="disabled" style="color:black;font-size:200%">&spades;</button>
+	    <button class="btn btn-default" id="suit1N" disabled="disabled" style="color:red;font-size:200%">&hearts;</button>
+	    <button class="btn btn-default" id="suit2N" disabled="disabled" style="color:red;font-size:200%">&diams;</button>
+	    <button class="btn btn-default" id="suit3N" disabled="disabled" style="color:black;font-size:200%">&clubs;</button>
+	    <button class="btn btn-default" id="passN" disabled="disabled" style="float: right;font-size:200%">PASS</button>
+	  </div>
+	  <div class="Wname" id="Wname"></div>
+	  <div class="cardareaW">
+	    <img src="images/cards-rotated/cardholder.png" class="card" id="W0"><br/>
+	    <img src="images/cards-rotated/cardholder.png" class="card" id="W1"><br/>
+	    <img src="images/cards-rotated/cardholder.png" class="card" id="W2"><br/>
+	    <img src="images/cards-rotated/cardholder.png" class="card" id="W3"><br/>
+	    <img src="images/cards-rotated/cardholder.png" class="card" id="W4"><br/>
+	    <img src="images/cards-rotated/cardholder.png" class="card" id="W5"><br/>
+	    <img src="images/cards-rotated/cardholder.png" class="card" id="W6"><br/>
+	    <img src="images/cards-rotated/cardholder.png" class="card" id="W7">
+	  </div>
+	  <div class="biddingW" id="biddingW">
+	    <button class="btn btn-default" id="80W" disabled="disabled">80</button>
+	    <button class="btn btn-default" id="suit0W" disabled="disabled" style="float:right;color:black;font-size:200%">&spades;</button><br/>
+	    <button class="btn btn-default" id="90W" disabled="disabled">90</button><br/>
+	    <button class="btn btn-default" id="100W" disabled="disabled">100</button>
+	    <button class="btn btn-default" id="suit1W" disabled="disabled" style="float:right;color:red;font-size:200%">&hearts;</button><br/>
+	    <button class="btn btn-default" id="110W" disabled="disabled">110</button><br/>
+	    <button class="btn btn-default" id="120W" disabled="disabled">120</button>
+	    <button class="btn btn-default" id="suit2W" disabled="disabled" style="float:right;color:red;font-size:200%">&diams;</button><br/>
+	    <button class="btn btn-default" id="130W" disabled="disabled">130</button><br/>
+	    <button class="btn btn-default" id="140W" disabled="disabled">140</button>
+	    <button class="btn btn-default" id="suit3W" disabled="disabled" style="float:right;color:black;font-size:200%">&clubs;</button><br/>
+	    <button class="btn btn-default" id="150W" disabled="disabled">150</button><br/>
+	    <button class="btn btn-default" id="160W" disabled="disabled">160</button>
+	    <button class="btn btn-default" id="passW" disabled="disabled" style="float:right;padding:0"><span style="font-size:200%;writing-mode:vertical-rl;text-orientation:upright">PASS</span></button><br/>
+	    <button class="btn btn-default" id="allW" disabled="disabled">all</button>
+	  </div>
+	  <div class="Ename" id="Ename"></div>
+	  <div class="cardareaE">
+	    <img src="images/cards-rotated/cardholder.png" class="card" id="E0"><br/>
+	    <img src="images/cards-rotated/cardholder.png" class="card" id="E1"><br/>
+	    <img src="images/cards-rotated/cardholder.png" class="card" id="E2"><br/>
+	    <img src="images/cards-rotated/cardholder.png" class="card" id="E3"><br/>
+	    <img src="images/cards-rotated/cardholder.png" class="card" id="E4"><br/>
+	    <img src="images/cards-rotated/cardholder.png" class="card" id="E5"><br/>
+	    <img src="images/cards-rotated/cardholder.png" class="card" id="E6"><br/>
+	    <img src="images/cards-rotated/cardholder.png" class="card" id="E7">
+	  </div>
+	  <div class="biddingE" id="biddingE">
+	    <button class="btn btn-default" id="80E" disabled="disabled">80</button>
+	    <button class="btn btn-default" id="suit0E" disabled="disabled" style="float:right;color:black;font-size:200%">&spades;</button><br/>
+	    <button class="btn btn-default" id="90E" disabled="disabled">90</button><br/>
+	    <button class="btn btn-default" id="100E" disabled="disabled">100</button>
+	    <button class="btn btn-default" id="suit1E" disabled="disabled" style="float:right;color:red;font-size:200%">&hearts;</button><br/>
+	    <button class="btn btn-default" id="110E" disabled="disabled">110</button><br/>
+	    <button class="btn btn-default" id="120E" disabled="disabled">120</button>
+	    <button class="btn btn-default" id="suit2E" disabled="disabled" style="float:right;color:red;font-size:200%">&diams;</button><br/>
+	    <button class="btn btn-default" id="130E" disabled="disabled">130</button><br/>
+	    <button class="btn btn-default" id="140E" disabled="disabled">140</button>
+	    <button class="btn btn-default" id="suit3E" disabled="disabled" style="float:right;color:black;font-size:200%">&clubs;</button><br/>
+	    <button class="btn btn-default" id="150E" disabled="disabled">150</button><br/>
+	    <button class="btn btn-default" id="160E" disabled="disabled">160</button>
+	    <button class="btn btn-default" id="passE" disabled="disabled" style="float:right;padding:0"><span style="font-size:200%;writing-mode:vertical-rl;text-orientation:upright">PASS</span></button><br/>
+	    <button class="btn btn-default" id="allE" disabled="disabled">all</button>
+</div>
+	  <div class="Sname" id="Sname"></div>
+	  <div class="cardareaS">
+	    <img src="images/cards/cardholder.png" class="card" id="S0">
+	    <img src="images/cards/cardholder.png" class="card" id="S1">
+	    <img src="images/cards/cardholder.png" class="card" id="S2">
+	    <img src="images/cards/cardholder.png" class="card" id="S3">
+	    <img src="images/cards/cardholder.png" class="card" id="S4">
+	    <img src="images/cards/cardholder.png" class="card" id="S5">
+	    <img src="images/cards/cardholder.png" class="card" id="S6">
+	    <img src="images/cards/cardholder.png" class="card" id="S7">
+	  </div>
+	  <div class="biddingS" id="biddingS">
+	    <button class="btn btn-default" id="suit0S" onclick="bidsuit(0);" disabled="disabled" style="color:black;font-size:200%">&spades;</button>
+	    <button class="btn btn-default" id="suit1S" onclick="bidsuit(1);" disabled="disabled" style="color:red;font-size:200%">&hearts;</button>
+	    <button class="btn btn-default" id="suit2S" onclick="bidsuit(2);" disabled="disabled" style="color:red;font-size:200%">&diams;</button>
+	    <button class="btn btn-default" id="suit3S" onclick="bidsuit(3);" disabled="disabled" style="color:black;font-size:200%">&clubs;</button>
+	    <button class="btn btn-default" id="passS"  onclick="bidpass();" disabled="disabled" style="float: right;font-size:200%">PASS</button>
+	    <br/>
+	    <button class="btn btn-default" id="80S" onclick="prebid(80);" disabled="disabled">80</button>
+	    <button class="btn btn-default" id="90S" onclick="prebid(90);" disabled="disabled">90</button>
+	    <button class="btn btn-default" id="100S" onclick="prebid(100);" disabled="disabled">100</button>
+	    <button class="btn btn-default" id="110S" onclick="prebid(110);" disabled="disabled">110</button>
+	    <button class="btn btn-default" id="120S" onclick="prebid(120);" disabled="disabled">120</button>
+	    <button class="btn btn-default" id="130S" onclick="prebid(130);" disabled="disabled">130</button>
+	    <button class="btn btn-default" id="140S" onclick="prebid(140);" disabled="disabled">140</button>
+	    <button class="btn btn-default" id="150S" onclick="prebid(150);" disabled="disabled">150</button>
+	    <button class="btn btn-default" id="160S" onclick="prebid(160);" disabled="disabled">160</button>
+	    <button class="btn btn-default" id="allS" onclick="prebid('all');" disabled="disabled">all</button>
+	  </div>
+	</div>
+        <div class="col-md-3 well">
+          <a class="btn btn-info " href="/index.html">
+            <i class="fa fa-sign-out"></i>
+            Leave room</a>
+          <h1 id="room-title" class="text-center"></h1>
+
+          <ul id="messages" class="list-group">
+            <!-- messages would be shown here -->
+          </ul>
+
+          <form id="messageform">
+            <div class="form-group">
+              <i class="" id="icon-type"></i>
+              <p class="help-block" id="typing"></p>
+              <div class="input-group">
+                <span class="input-group-addon">
+                  <i class="glyphicon glyphicon-comment"></i>
+                </span>
+                <input autofocus class="form-control" id="messagebox" type="text" autocomplete="off" value=""/>
+              </div>
+            </div>
+<!--
+            <div class="form-group">
+              <input class="btn btn-default btn-block" type="submit"/>
+            </div>
+-->
+          </form>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <script src="/js/common.js"></script>
+    <script src="/js/client.js"></script>
+
+  </body>
+</html>

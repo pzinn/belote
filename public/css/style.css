@@ -1,0 +1,221 @@
+.vertical-center {
+  min-height: 100vh;
+  margin: 0;
+  display: flex;
+  align-items: center;
+}
+.vertical-center .container-fluid {
+  flex-grow:1
+}
+h1 {
+  margin: 24px 0;
+}
+
+ul.list-group {
+  max-height: 50vh;
+  overflow-y: scroll;
+}
+
+.message-stamp {
+    color: #2E6D88;
+    float: right;
+}
+
+.message {
+}
+
+.mine {
+  font-style: italic;
+}
+
+
+.typing {
+  font-style: italic;
+}
+.msg-delieverd {
+  text-shadow: 1px 1px 1px #ccc;
+  font-size: 1.5em;
+  color: #2F99F5;
+}
+.msg-read {
+  text-shadow: 1px 1px 1px #ccc;
+  font-size: 1.5em;
+  color: #2AC151;
+}
+
+.well {
+    margin-top: 15px;
+}
+
+.card {
+    max-width: 100px;
+    max-height: 100px;    
+    transition: transform 0.3s;
+}
+
+.card.active:hover {
+    transform: scale(1.2);
+}
+
+.card.active {
+    transform: translate(0%,-10%);
+}
+
+.cardareaN {
+    position: absolute;
+    top: 40px;
+    left: 50%;
+    transform: translate(-50%,0%);
+}
+
+.biddingN {
+    position: absolute;
+    top: 150px;
+    left: 50%;
+    transform: translate(-50%,0%);
+    text-align: center;
+    line-height: 50px;
+}
+
+.cardareaS {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translate(-50%,0%);
+}
+
+.biddingS {
+    position: absolute;
+    bottom: 150px;
+    left: 50%;
+    transform: translate(-50%,0%);
+    text-align: center;
+    line-height: 50px;
+}
+
+.cardareaW {
+    position: absolute;
+    left: 40px;
+    top: 50%;
+    transform: translate(0%,-50%);
+}
+
+.biddingW {
+    position: absolute;
+    left: 150px;
+    top: 50%;
+    transform: translate(0%,-50%);
+}
+
+.cardareaE {
+    position: absolute;
+    right: 40px;
+    top: 50%;
+    transform: translate(0%,-50%);
+}
+
+.biddingE {
+    position: absolute;
+    right: 150px;
+    top: 50%;
+    transform: translate(0%,-50%);
+}
+
+
+.cardarea {
+    width: 100%;
+}
+
+.cardarea img {
+    margin: 0px 25px 0px 25px;
+}
+
+.cardarea1 img {
+    margin: 25px 5px 25px 5px;
+}
+
+.playedcards {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%,-50%);
+    text-align: center;
+}
+
+.playedcards.trick {
+    transform: translate(-50%,-50%) scale(0.1);
+    transition-duration: 1.3s;
+    transition-timing-function: ease-in;
+    transition-delay: 1.0s;
+}
+
+.playedcards.W {
+    left: 0%;
+    top: 50%;
+}
+.playedcards.E {
+    left: 100%;
+    top: 50%;
+}
+.playedcards.S {
+    left: 50%;
+    top: 100%;
+}
+.playedcards.N {
+    left: 50%;
+    top: 0%;
+}
+
+.Wname {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translate(0%,-50%);    
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    padding: 10px 2px 10px 2px;
+}
+
+.Ename {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translate(0%,-50%);    
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    padding: 10px 2px 10px 2px;
+}
+
+.Sname {
+    position: absolute;
+    left:50%;
+    bottom: 10px;
+    transform: translate(-50%,0%);
+    padding: 2px 10px 2px 10px;
+}
+
+.Nname {
+    position: absolute;
+    left:50%;
+    top: 10px;
+    transform: translate(-50%,0%);    
+    padding: 2px 10px 2px 10px;
+}
+
+.scores td, th {
+    border: 1px solid black;
+    padding: 5px;
+}
+
+.ready {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+}
+
+.trump {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    font-size: 300%;
+}
