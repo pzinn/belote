@@ -52,11 +52,10 @@ function validCard(playedCards,firstplayedCard,hand,trump,turn,card) { // missin
 		if ((suit(hand[i])==trump)&&(trumpordering[hand[i]%8]<m)) return false;
     }
     if (s==s0) return true; // case of trump
-    // at this stage that means we don't have that suit
-    if (partnerDom) return true;
+    // at this stage that means we shouldn't have that suit
     for (i=0; i<hand.length; i++)
 	if (suit(hand[i])==s0) return false;
-    if (s==trump) return true;
+    if ((s==trump)|partnerDom) return true;
     for (i=0; i<hand.length; i++)
 	if (suit(hand[i])==trump) return false;
     return true;

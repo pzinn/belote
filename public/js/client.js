@@ -185,8 +185,8 @@ socket.on("gameInfo", function(gameInfo1) {
     document.getElementById("score2").innerHTML=gameInfo.scores[1];
 
     // fix for annoying lack of animation problem
-    if ((!gameInfo.playing)&&animation) {	
-    	animation=false; oldGameInfo.playedCards=[null,null,null,null];
+    if ((!gameInfo.playing)&&animation) {
+	animation=false; oldGameInfo=null;
 	document.getElementById("playedcards").classList.remove("trick","N","E","S","W");	
     }
     
