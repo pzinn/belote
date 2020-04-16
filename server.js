@@ -305,8 +305,8 @@ io.on("connection", function(socket) {
 		    io.in(room).emit("message", {
 			name: "Broadcast",
 			text: "Bid successful<br/>"
-			    +gameInfo[room].playerNames[0]+"/"+gameInfo[room].playerNames[2]+": "+gameInfo[room].scores[0]+" pts<br/>"
-			    +gameInfo[room].playerNames[1]+"/"+gameInfo[room].playerNames[3]+": "+gameInfo[room].scores[1]+" pts", 
+			+"Total "+gameInfo[room].playerNames[0]+"/"+gameInfo[room].playerNames[2]+": "+gameInfo[room].scores[0]+" pts<br/>"
+			+"Total "+gameInfo[room].playerNames[1]+"/"+gameInfo[room].playerNames[3]+": "+gameInfo[room].scores[1]+" pts",
 			timestamp: moment().valueOf()
 		    });
 		}
@@ -315,16 +315,24 @@ io.on("connection", function(socket) {
 		    io.in(room).emit("message", {
 			name: "Broadcast",
 			text: "Bid unsuccessful<br/>"
-			    +gameInfo[room].playerNames[0]+"/"+gameInfo[room].playerNames[2]+": "+sc[0]+" pts<br/>"
-			    +gameInfo[room].playerNames[1]+"/"+gameInfo[room].playerNames[3]+": "+sc[1]+" pts", 
+			    +"Total "+gameInfo[room].playerNames[0]+"/"+gameInfo[room].playerNames[2]+": "+sc[0]+" pts<br/>"
+			    +"Total "+gameInfo[room].playerNames[1]+"/"+gameInfo[room].playerNames[3]+": "+sc[1]+" pts",
 			timestamp: moment().valueOf()
 		    });
 		}
 		gameInfo[room].deck=gameInfo[room].tricks[0].concat(gameInfo[room].tricks[1],gameInfo[room].tricks[2],gameInfo[room].tricks[3]); // reform the deck
-		io.in(room).emit("gameInfo",gameInfo[room]);
-		setTimeout(startRound,3000,room);
+		io.in(room).emit("gameInfo",gameInfo[room]); // show cleanup
+		setTimeout(startRound,5000,room);
 		return;
 	    }
+	    io.in(room).emit("message", {
+		name: "Broadcast",
+		text: name+" plays "+common.cardshtml[j]+"<br/>"
+		    +gameInfo[room].playerNames[im]+" wins, his turn",
+		timestamp: moment().valueOf()
+	    });
+	    setTimeout(function(room) {	io.in(room).emit("gameInfo",gameInfo[room]); },2000,room); // still not quite right
+	    return;
 	}
 	else gameInfo[room].turn=(gameInfo[room].turn+1)%4;
 

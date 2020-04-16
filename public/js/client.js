@@ -272,14 +272,17 @@ socket.on("gameInfo", function(gameInfo1) {
     }
 
     if (gameInfo.playing&&(gameInfo.playedCards.indexOf(-1)<0)) { // everyone has played
+	if (animation) document.getElementById("playedcards").classList.remove("trick","N","E","S","W"); // fix for annoying lack of animation problem issue
 	document.getElementById("playedcards").addEventListener("transitionend", function() {
-	    animation=false; oldgameInfo=null;
+	    animation=false;
+	    oldgameInfo=null;
 	    drawPlayedCards();
 	    drawTricks();
 	    this.classList.remove("trick","N","E","S","W");
 	});
 	animation=true;
 	document.getElementById("playedcards").classList.add("trick",dirs[(gameInfo.turn+4-pos)%4]);
+	return;
     }
 
     if (gameInfo.turn==pos) {
@@ -339,8 +342,8 @@ socket.on("hand", function(h) {
     }
 });
 
+/*
 socket.on("trick", function(winner) {
-    // TODO: have actual tricks accumulating
     document.getElementById("playedcards").addEventListener("transitionend", function() {
 	this.classList.remove("trick","N","E","S","W");
 	animation=false;
@@ -352,6 +355,7 @@ socket.on("trick", function(winner) {
     animation=true;
     document.getElementById("playedcards").classList.add("trick",dirs[(winner+4-pos)%4]);
 });
+*/
 
 // other user messaged
 socket.on("message", function(message) {
@@ -430,6 +434,12 @@ function bid(b,s) {
 
 function play(c) {
     console.log("attempted play "+c);
+    if (animation) {
+	animation=false; oldgameInfo=null;
+	drawPlayedCards();
+	drawTricks();
+	document.getElementById("playedcards").classList.remove("trick","N","E","S","W");
+    }
     if ((gameInfo.turn==pos)&&gameInfo.playing&&validCard(gameInfo.playedCards,gameInfo.firstplayedCard,hand,gameInfo.trump,gameInfo.turn,c)) {
 	oldgameInfo = { turn : gameInfo.turn }; // bit of a hack
 	gameInfo.turn=(pos+1)%4; // a bit early; may have to undo
