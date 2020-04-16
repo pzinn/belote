@@ -155,13 +155,15 @@ io.on("connection", function(socket) {
     });
 
     socket.on("ready", function(flag) { // client says ready to start game (or not)
+	var room = clientInfo[socket.id].room;
 	if (gameInfo[room]!==undefined) { // game already started
 		socket.emit("message", {
 		    name: "System",
-		    text: "Game already started. You're a spectator",
+		    text: "Game already started.",
 		    timestamp: moment().valueOf()
 		});
 	} else {
+	    if (clientInfo[socket.id].ready==(flag!==false)) return;
 	    clientInfo[socket.id].ready=(flag!==false);
 	    var room=clientInfo[socket.id].room;
 	    io.in(room).emit("message", {
@@ -214,7 +216,7 @@ io.on("connection", function(socket) {
 		gameInfo[room].turn=gameInfo[room].startingPlayer;
 	    }
 	} else {
-	    if ((message.arg[0]!="all")&&((message.arg[0]<gameInfo[room].bid)||(gameInfo[room].bid=="all")||(message.arg[0]%10!=0)||(message.arg[0]>160))) return -1; // shouldn't happen
+	    if ((message.arg[0]!="all")&&((message.arg[0]<=gameInfo[room].bid)||(gameInfo[room].bid=="all")||(message.arg[0]%10!=0)||(message.arg[0]>160))) return -1; // shouldn't happen
 	    gameInfo[room].lastbids[i]=message.arg; // logging bids
 	    gameInfo[room].bid=message.arg[0];
 	    gameInfo[room].trump= typeof message.arg[1] === "string" ? common.suitshtml0.indexOf(message.arg[1]) : message.arg[1];
@@ -241,7 +243,7 @@ io.on("connection", function(socket) {
 	var j = message.arg; // played card
 	var k = gameCards[room][i].indexOf(j);
 	if (k<0) return -1; // card not in hand
-	if (!common.validCard(gameInfo[room].playedCards,gameInfo[room].firstplayedCard,gameCards[room][i],gameInfo[room].trump,j)) return -1;
+	if (!common.validCard(gameInfo[room].playedCards,gameInfo[room].firstplayedCard,gameCards[room][i],gameInfo[room].trump,gameInfo[room].turn,j)) return -1;
 
 	// remove card from hand
 	gameCards[room][i].splice(k,1);
@@ -398,13 +400,16 @@ function startRound(room) {
     var i,j;
     for (i=0; i<4; i++)
 	for (j=0; j<3; j++) 
-    gameCards[room][i].push(gameInfo[room].deck.pop());
+	    gameCards[room][i].push(gameInfo[room].deck.pop());
     for (i=0; i<4; i++)
 	for (j=0; j<3; j++) 
     gameCards[room][i].push(gameInfo[room].deck.pop());
     for (i=0; i<4; i++)
 	for (j=0; j<2; j++) 
     gameCards[room][i].push(gameInfo[room].deck.pop());
+    for (i=0; i<4; i++)
+	gameCards[room][i].sort((a, b) => a - b);
+
     
     gameInfo[room].numcards=[8,8,8,8];
     gameInfo[room].playedCards=[-1,-1,-1,-1];
@@ -417,7 +422,7 @@ function startRound(room) {
     gameInfo[room].playing=false;
      
     // starting player
-    gameInfo[room].startingPlayer++;
+    gameInfo[room].startingPlayer=(gameInfo[room].startingPlayer+1)%4;
     gameInfo[room].turn=gameInfo[room].startingPlayer;
 
     // send the private info: hand

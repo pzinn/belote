@@ -20,25 +20,43 @@ function suit(card) {
     return Math.floor(card/8);
 }
 
-function validCard(playedCards,firstplayedCard,hand,trump,card) { // missing the rule that if partner is dominant, no need to trump
+function validCard(playedCards,firstplayedCard,hand,trump,turn,card) { // missing the rule that if partner is dominant, no need to trump
     var i;
     if (card<0) return false;
     if (firstplayedCard<0) return true; // first player can do anything
-    var s=suit(firstplayedCard);
-    var ss=suit(card);
-    if (ss==trump) { // must be higher than any other trump if one can
+
+    var s0=suit(firstplayedCard);
+    var s=suit(card);
+
+    var partnerDom;
+    // figure out if partner dominant
+    var vm=1000; var im;
+    var v,ss;
+    for (var ii=0; ii<4; ii++)
+	if (playedCards[ii]>=0)
+    {
+	ss=suit(playedCards[ii]);
+	if (ss==trump) v=trumpordering[playedCards[ii]%8];
+	else if (ss==s0) v=8+nontrumpordering[playedCards[ii]%8];
+	if (v<vm) { vm=v; im=ii; }
+    }
+    partnerDom=(im==(turn+2)%4);
+
+    if ((s0!=trump)&&(s==s0)) return true;
+    if ((s==trump)&&((s0==trump)||!partnerDom)) { // must be higher than any other trump if one can
 	var m=1000;
 	for (i=0; i<playedCards.length; i++)
 	    if ((suit(playedCards[i])==trump)&&(trumpordering[playedCards[i]%8]<m)) m=trumpordering[playedCards[i]%8];
-	if (trumpordering[card%8]>m) // should be one can't
+	if (trumpordering[card%8]>m) // played a lower trump. means one doesn't have higher
 	    for (i=0; i<hand.length; i++)
-		if ((suit(hand[i])==trump)&&(trumpordering[hand[i]%8]<m)) return -1;
+		if ((suit(hand[i])==trump)&&(trumpordering[hand[i]%8]<m)) return false;
     }
-    if (ss==s) return true;
+    if (s==s0) return true; // case of trump
     // at this stage that means we don't have that suit
+    if (partnerDom) return true;
     for (i=0; i<hand.length; i++)
-	if (suit(hand[i])==s) return false;
-    if (ss==trump) return true; // TEMP. need to check higher in trump
+	if (suit(hand[i])==s0) return false;
+    if (s==trump) return true;
     for (i=0; i<hand.length; i++)
 	if (suit(hand[i])==trump) return false;
     return true;

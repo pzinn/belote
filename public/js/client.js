@@ -1,5 +1,6 @@
-// - cards sometimes not appearing at start of game
-
+// - right now the typed commands do not update graphics <---- ???????
+//   only problem with play()
+//
 // - backs of cards should have the same color
 // - one should be able to reorder cards
 // - lower res versions of cards
@@ -26,7 +27,7 @@ var bidlist=["80","90","100","110","120","130","140","150","160","all"];
 
 document.getElementById("room-title").innerHTML=room;
 
-// preload cards
+// preload cards -- shoud I prefetch instead?
 var preloadLink;
 for (var i=0; i<32; i++)
 {
@@ -46,13 +47,18 @@ socket.on("connect", function() {
 	name: name,
 	room: room
     });
+    if (auto) {
+    ready(true);
+    document.getElementById("ready").disabled=true;
+    document.getElementById("ready").checked=true;
+    }
 });
 
 //
 function showAllowed() {
     for (var i=0; i<8; i++) {
 	cardel=document.getElementById(dirs[0]+i);
-	if (validCard(gameInfo.playedCards,gameInfo.firstplayedCard,hand,gameInfo.trump,+cardel.alt))
+	if (validCard(gameInfo.playedCards,gameInfo.firstplayedCard,hand,gameInfo.trump,gameInfo.turn,+cardel.alt))
 	    cardel.classList.add("active");
 	else
 	    cardel.classList.remove("active");	    
@@ -61,7 +67,7 @@ function showAllowed() {
 
 function autoplay() {
     var i=Math.floor(Math.random()*hand.length);
-    while (!validCard(gameInfo.playedCards,gameInfo.firstplayedCard,hand,gameInfo.trump,hand[i])) i=(i+1)%hand.length;
+    while (!validCard(gameInfo.playedCards,gameInfo.firstplayedCard,hand,gameInfo.trump,gameInfo.turn,hand[i])) i=(i+1)%hand.length;
     play(hand[i]);
 }
 
@@ -387,9 +393,9 @@ function bidpass() {
 }
 
 function bid(b,s) {
-    if ((gameInfo.turn==pos)&&gameInfo.bidding) { // more testing TODO	
-	// TODO: graphical aspect
-	socket.emit("bid", {
+    console.log("attempted bid "+b+" "+s);
+    if ((gameInfo.turn==pos)&&gameInfo.bidding&&((b=="pass")||((gameInfo.bid!="all")&&((b=="all")||(b>gameInfo.bid))))) {
+    	socket.emit("bid", {
 	    name: name,
 	    timestamp : moment().valueOf(),
 	    arg: [b,s]
@@ -398,7 +404,8 @@ function bid(b,s) {
 }
 
 function play(c) {
-    if ((gameInfo.turn==pos)&&gameInfo.playing&&validCard(gameInfo.playedCards,gameInfo.firstplayedCard,hand,gameInfo.trump,c)) {
+    console.log("attempted play "+c);
+    if ((gameInfo.turn==pos)&&gameInfo.playing&&validCard(gameInfo.playedCards,gameInfo.firstplayedCard,hand,gameInfo.trump,gameInfo.turn,c)) {
 	oldgameInfo = { turn : gameInfo.turn }; // bit of a hack
 	gameInfo.turn=(pos+1)%4; // a bit early; may have to undo
 	signalTurn();
@@ -546,7 +553,7 @@ socket.on("userSeen", function(msg) {
 	s+="msg-delieverd";
     }
     document.getElementById("icon-type").className=s;
-    console.log(msg);
+//    console.log(msg);
     //}
 });
 
