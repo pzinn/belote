@@ -223,6 +223,38 @@ ul.list-group {
     padding: 2px 10px 2px 10px;
 }
 
+#trickS {
+    position: absolute;
+    left:55%;
+    bottom: 0px;
+    transform: scale(0.25) rotate(-90deg);
+    white-space: nowrap;
+}
+
+#trickN {
+    position: absolute;
+    right:55%;
+    top: 0px;
+    transform: scale(0.25) rotate(90deg);
+    white-space: nowrap;
+}
+
+#trickW {
+    position: absolute;
+    left:55%;
+    bottom: 0px;
+    transform: scale(0.25) rotate(-90deg);
+    white-space: nowrap;
+}
+
+#trickE {
+    position: absolute;
+    right:55%;
+    top: 0px;
+    transform: scale(0.25) rotate(90deg);
+    white-space: nowrap;
+}
+
 .scores td, th {
     border: 1px solid black;
     padding: 5px;

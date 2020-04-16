@@ -1,6 +1,7 @@
 // - really, the card should move from hand to middle. have static placeholders
 // - right now the typed commands do not update graphics <---- ???????
 //   only problem with play()
+// - related issue, when one plays too quickly after winning trick, moving card changes
 //
 // - backs of cards should have the same color
 // - one should be able to reorder cards
@@ -20,7 +21,9 @@ var hand=[]; // my hand
 var auto=(name[0]=="@"); // TEMP obviously
 var animation=false; // the little trick animation
 
-var dirs=["S","W","N","E"]; var cols=["red","green","blue","yellow"]; var prefix="images/cards/";
+var dirs=["S","W","N","E"];
+var prefix="images/cards/";
+var cols=["green","green","green","green"]; //["red","green","blue","yellow"]; // backs of cards
 
 var mysuit=-1;
 var mybid=-1;
@@ -111,18 +114,21 @@ function updatePic(img,file) {
 var oldgameInfo; // eww
 
 function drawHandCards() {
-    for (var i=0; i<4; i++)
-    {
+    for (var i=0; i<4; i++) {
 	var k=(i+4-pos)%4; // position relative to me
-	// names (shouldn't change but who knows?) plus indicates whose turn it is TEMP move somewhere more reasonable
-	var nameel=document.getElementById(dirs[k]+"name");
-	nameel.innerHTML=gameInfo.playerNames[i];
-	if (i==gameInfo.turn) nameel.style.border="3px solid #FF0000"; else nameel.style.border="3px solid transparent";
-	
-	if (i!=pos) // don't draw one's cards
+	if (i!=pos) // don't draw one's cards	    
 	    for (var j=0; j<8; j++)
 		updatePic(document.getElementById(dirs[k]+j),
 			  j<gameInfo.numcards[i] ? prefix+cols[i]+"_back.png" : prefix+"cardholder.png");
+    }
+}
+
+function drawTricks() {
+    for (var i=0; i<4; i++) {
+	var k=(i+4-pos)%4; // position relative to me
+	for (var j=0; j<8; j++)
+	    updatePic(document.getElementById("trick"+dirs[k]+j),
+		      j<gameInfo.tricks[i].length/4 ? prefix+cols[i]+"_back.png" : prefix+"cardholder.png");	
     }
 }
 
@@ -130,7 +136,6 @@ function redrawHandCards() { // same as drawHandCards except do minimal change
    for (var i=0; i<4; i++)
     {
 	var k=(i+4-pos)%4; // position relative to me
-	// names (shouldn't change but who knows?) plus indicates whose turn it is TEMP	
 	if (i!=pos) // don't draw one's cards
 	    if (oldgameInfo.numcards[i]<gameInfo.numcards[i])
 		for (var j=oldgameInfo.numcards[i]; j<gameInfo.numcards[i]; j++)
@@ -140,6 +145,21 @@ function redrawHandCards() { // same as drawHandCards except do minimal change
 		    updatePic(document.getElementById(dirs[k]+j),prefix+"cardholder.png");
     }
 }
+
+/*
+function redrawTricks() {
+   for (var i=0; i<4; i++)
+    {
+	var k=(i+4-pos)%4; // position relative to me
+	if (oldgameInfo.tricks[i].length<gameInfo.tricks[i].length)
+	    for (var j=oldgameInfo.tricks[i].length/4; j<gameInfo.tricks[i].length/4; j++)
+		updatePic(document.getElementById("trick"+dirs[k]+j),prefix+cols[i]+"_back.png");
+	else
+	    for (var j=gameInfo.tricks[i].length/4; j<oldgameInfo.tricks[i].length/4; j++)
+		updatePic(document.getElementById("trick"+dirs[k]+j),prefix+"cardholder.png");
+    }
+}
+*/
 
 function drawPlayedCards() {
     for (var i=0; i<4; i++)
@@ -154,8 +174,11 @@ function drawPlayedCards() {
 }
 
 function drawCards() {
-    if (oldgameInfo===null) drawHandCards(); else redrawHandCards();
-
+    if (oldgameInfo===null)
+	drawHandCards();
+    else
+	redrawHandCards();
+    if (!animation) drawTricks();
     // bidding stuff
     for (var i=0; i<4; i++)
 	document.getElementById("bidding"+dirs[i]).hidden=!gameInfo.bidding;
@@ -252,6 +275,7 @@ socket.on("gameInfo", function(gameInfo1) {
 	document.getElementById("playedcards").addEventListener("transitionend", function() {
 	    animation=false; oldgameInfo=null;
 	    drawPlayedCards();
+	    drawTricks();
 	    this.classList.remove("trick","N","E","S","W");
 	});
 	animation=true;

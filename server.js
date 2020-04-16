@@ -271,7 +271,7 @@ io.on("connection", function(socket) {
 	    io.in(room).emit("gameInfo",gameInfo[room]); // send so people know which card was played last before cleaning up
 	    // tricks
 	    for (var ii=0; ii<4; ii++)
-		gameInfo[room].tricks[im%2].push(gameInfo[room].playedCards[ii]);
+		gameInfo[room].tricks[im].push(gameInfo[room].playedCards[ii]);
 	    // clean up
 	    gameInfo[room].playedCards=[-1,-1,-1,-1];
 	    gameInfo[room].firstplayedCard=-1;
@@ -280,12 +280,12 @@ io.on("connection", function(socket) {
 		// score calculation
 		var sc=[0,0];
 		sc[im%2]=10; // 10 extra for last trick
-		for (var ii=0; ii<2; ii++)
+		for (var ii=0; ii<4; ii++)
 		    for (var jj=0; jj<gameInfo[room].tricks[ii].length; jj++) {
 			var c=gameInfo[room].tricks[ii][jj];
 			if (common.suit(c)==gameInfo[room].trump)
-			    sc[ii]+=common.trumpvalue[c%8];
-			else sc[ii]+=common.nontrumpvalue[c%8];
+			    sc[ii%2]+=common.trumpvalue[c%8];
+			else sc[ii%2]+=common.nontrumpvalue[c%8];
 		    }
 		io.in(room).emit("message", {
 		    name: "Broadcast",
@@ -298,7 +298,9 @@ io.on("connection", function(socket) {
 		for (var ii=0; ii<2; ii++)
 		    gameInfo[room].scores[ii]+=10*Math.round(sc[ii]/10); // variation of the rules
 		*/
-		if ((sc[gameInfo[room].bidplayer%2]>81)&&(((gameInfo[room].bid=="all")&&(gameInfo[room].tricks[gameInfo[room].bidplayer%2].length==8))||((gameInfo[room].bid!="all")&&(sc[gameInfo[room].bidplayer%2]>gameInfo[room].bid)))) {
+		if ((sc[gameInfo[room].bidplayer%2]>81)
+		    &&(((gameInfo[room].bid=="all")&&(gameInfo[room].tricks[gameInfo[room].bidplayer].length+gameInfo[room].tricks[(gameInfo[room].bidplayer+2)%4].length==8))
+		       ||((gameInfo[room].bid!="all")&&(sc[gameInfo[room].bidplayer%2]>gameInfo[room].bid)))) {
 		    gameInfo[room].scores[gameInfo[room].bidplayer%2]+=gameInfo[room].bid == "all" ? 250 : gameInfo[room].bid;
 		    io.in(room).emit("message", {
 			name: "Broadcast",
@@ -318,7 +320,7 @@ io.on("connection", function(socket) {
 			timestamp: moment().valueOf()
 		    });
 		}
-		gameInfo[room].deck=gameInfo[room].tricks[0].concat(gameInfo[room].tricks[1]); // reform the deck
+		gameInfo[room].deck=gameInfo[room].tricks[0].concat(gameInfo[room].tricks[1],gameInfo[room].tricks[2],gameInfo[room].tricks[3]); // reform the deck
 		io.in(room).emit("gameInfo",gameInfo[room]);
 		setTimeout(startRound,3000,room);
 		return;
@@ -395,7 +397,7 @@ function startRound(room) {
     });
 
     // tricks
-    gameInfo[room].tricks=[[],[]];
+    gameInfo[room].tricks=[[],[],[],[]];
     
     // deal
     gameCards[room]=[[],[],[],[]];
