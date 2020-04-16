@@ -8,6 +8,7 @@ var app = express(); // express app which is used boilerplate for HTTP
 var http = require("http").Server(app);
 
 const common = require('./public/js/common.js');
+const help = require('./public/js/help.js');
 
 //moment js
 var moment = require("moment");
@@ -15,7 +16,6 @@ var moment = require("moment");
 var clientInfo = {}; // keys = socket ids
 var gameInfo = {}; // keys = room names
 var gameCards = {}; // keys = room names
-var helpText = "Help coming soon"; // TODO (maybe put in separate file)
 
 //socket io module
 var io = require("socket.io")(http);
@@ -123,7 +123,7 @@ io.on("connection", function(socket) {
     });
 
     socket.emit("message", {
-	text: "Welcome to Belote!",
+	text: help.welcomeText,
 	timestamp: moment().valueOf(),
 	name: "System"
     });
@@ -141,13 +141,9 @@ io.on("connection", function(socket) {
 	sendCurrentUsers(socket); // to show all current users
     });
 
-    socket.on("players", function() {
-	// TODO show if game started, players
-    });
-
     socket.on("help", function() {
 	socket.emit("message", {
-	    text: helpText,
+	    text: help.helpText,
 	    timestamp: moment().valueOf(),
 	    name: "System"
 	});
@@ -283,9 +279,7 @@ io.on("connection", function(socket) {
 		for (var ii=0; ii<4; ii++)
 		    for (var jj=0; jj<gameInfo[room].tricks[ii].length; jj++) {
 			var c=gameInfo[room].tricks[ii][jj];
-			if (common.suit(c)==gameInfo[room].trump)
-			    sc[ii%2]+=common.trumpvalue[c%8];
-			else sc[ii%2]+=common.nontrumpvalue[c%8];
+			sc[ii%2] += common.suit(c)==gameInfo[room].trump ? common.trumpvalue[c%8] : common.nontrumpvalue[c%8];
 		    }
 		io.in(room).emit("message", {
 		    name: "Broadcast",
@@ -398,12 +392,6 @@ function startRound(room) {
     var n=Math.floor(Math.random()*26)+3;
     for (i=0; i<n; i++) gameInfo[room].deck.unshift(gameInfo[room].deck.pop());
 
-    io.in(room).emit("message", {
-	name: "Broadcast",
-	text: "Round starting!",
-	timestamp: moment().valueOf()
-    });
-
     // tricks
     gameInfo[room].tricks=[[],[],[],[]];
     
@@ -436,6 +424,13 @@ function startRound(room) {
     // starting player
     gameInfo[room].startingPlayer=(gameInfo[room].startingPlayer+1)%4;
     gameInfo[room].turn=gameInfo[room].startingPlayer;
+
+    io.in(room).emit("message", {
+	name: "Broadcast",
+	text: "Round starting!<br/>"
+	    +gameInfo[room].playerNames[gameInfo[room].turn]+"'s turn",
+	timestamp: moment().valueOf()
+    });
 
     // send the private info: hand
     for (i=0; i<4; i++)

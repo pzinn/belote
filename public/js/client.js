@@ -1,3 +1,4 @@
+// - the welcome message is weirdly split in 2 places
 // - really, the card should move from hand to middle. have static placeholders
 // - right now the typed commands do not update graphics <---- ???????
 //   only problem with play()
@@ -75,13 +76,30 @@ function autoplay() {
     play(hand[i]);
 }
 
+var autoeval=[];
+
 function autobid() {
     var b=+gameInfo.bid;
-    if (Math.random()*160>b)
-	bid(b+10,suit(hand[Math.floor(Math.random()*hand.length)]));
-    else
-	bid("pass");
-    
+    var i,j;
+    if ((b=="all")||(b==160)) { bid("pass"); return; }
+    if (autoeval.length==0) // evaluate hand
+	for (i=0; i<4; i++)
+	{
+	    autoeval[i]=0;
+	    for (j=0; j<hand.length; j++)
+		autoeval[i] += suit(hand[j])==i ? trumpvalue[hand[j]%8] : nontrumpvalue[hand[j]%8];
+	}
+    while (true) {
+	i=Math.floor(Math.random()*4);
+	if (autoeval[i]*2+Math.random()*10>b) {
+	    bid(b+10,i);
+	    return;
+	}
+	else if (Math.random()<0.25) {
+	    bid("pass");
+	    return;
+	}
+    }
 }
 
 /*
@@ -240,7 +258,7 @@ socket.on("gameInfo", function(gameInfo1) {
 	    name: "System",
 	    timestamp : moment().valueOf()
 	}
-	else message="Welcome to Belote!";
+	else message=welcomeText;
 	insertMessage(message,"");
 	// write names in scores table
 	document.getElementById("scoresname1").innerHTML=gameInfo.playerNames[0]+"<br/>"+gameInfo.playerNames[2];
@@ -340,6 +358,8 @@ socket.on("hand", function(h) {
 	}
 	cardel.classList.remove("active");
     }
+    // for autoplay
+    autoeval=[];
 });
 
 /*
