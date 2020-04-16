@@ -104,7 +104,6 @@ io.on("connection", function(socket) {
 		    text: "Game already started. You're a spectator",
 		    timestamp: moment().valueOf()
 		});
-		// TODO: show something
 	    }
 	    socket.emit("gameInfo",gameInfo[room]);
 	}
@@ -250,7 +249,7 @@ io.on("connection", function(socket) {
 	gameInfo[room].numcards[i]--;
 	gameInfo[room].playedCards[i]=j;
 	
-	// process the actual play: TODO
+	// process the actual play
 	if (gameInfo[room].firstplayedCard<0) { // first player determines suit
 	    gameInfo[room].firstplayedCard=j;
 	}
@@ -376,7 +375,8 @@ function startRound(room) {
     console.log("Round starting in room "+room);
     var people=Object.keys(io.sockets.adapter.rooms[room].sockets);
     var players=new Array(4);    // not stored in gameInfo because may change with time (reconnects)
-    for (var i=0; i<people.length; i++)
+    var i,j;
+    for (i=0; i<people.length; i++)
     {
 	j=0;
 	while ((j<4)&&(clientInfo[people[i]].name!=gameInfo[room].playerNames[j])) j++;
@@ -385,7 +385,9 @@ function startRound(room) {
     }
 
     // shuffle cards -- correction, cut!
-    // TODO
+    var n=Math.floor(Math.random()*26)+3;
+    for (i=0; i<n; i++) gameInfo[room].deck.unshift(gameInfo[room].deck.pop());
+
     io.in(room).emit("message", {
 	name: "Broadcast",
 	text: "Round starting!",

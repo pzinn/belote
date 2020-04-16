@@ -1,3 +1,4 @@
+// - really, the card should move from hand to middle. have static placeholders
 // - right now the typed commands do not update graphics <---- ???????
 //   only problem with play()
 //
