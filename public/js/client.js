@@ -1,5 +1,3 @@
-// - trump in corner lost
-//
 // - the welcome message is weirdly split in 2 places
 // - really, the card should move from hand to middle. have static placeholders
 //
@@ -432,6 +430,7 @@ socket.on("bid", function(message) { // arg should be [bid,suit] where bid = num
 	    for (var i=0; i<4; i++)
 		document.getElementById("bidding"+dirs[i]).hidden=true;
 	    document.getElementById("playedcards").hidden=false;
+	    document.getElementById("bid").innerHTML=gameInfo.bid +" "+suitshtml[gameInfo.trump];
 	}
 	signalTurn();
     }
@@ -487,6 +486,7 @@ socket.on("play", function(message) {
 	    for (var i=0; i<4; i++)
 		document.getElementById("bidding"+dirs[i]).hidden=false;
 	    document.getElementById("playedcards").hidden=true;
+	    document.getElementById("bid").innerHTML="";
 	}
 	signalTurn();
     }

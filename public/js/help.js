@@ -4,7 +4,7 @@ commands = [
     ["ready","Toggle your ready status"],
     ["bid","Bid"],
     ["partner","Pick your partner"],
-    ["play","Play a card (slightly buggy atm)"]
+    ["play","Play a card"]
 ];
 
 helpText="All commands must be preceded with @<br/>\n<ul>";

@@ -76,8 +76,10 @@ function process_bid(gameInfo,message) {
 	}
     } else {
 	if ((message.arg[0]!="all")&&((message.arg[0]<=gameInfo.bid)||(gameInfo.bid=="all")||(message.arg[0]%10!=0)||(message.arg[0]>160))) return false; // shouldn't happen
-	gameInfo.bid=message.arg[0];
-	gameInfo.trump= typeof message.arg[1] === "string" ? suitshtml0.indexOf(message.arg[1]) : message.arg[1];
+	gameInfo.bid=+message.arg[0];
+	var k=-1;
+	if (typeof message.arg[1] === "string") k=suitshtml0.indexOf(message.arg[1]);
+	gameInfo.trump = k<0 ? +message.arg[1] : k;
 	gameInfo.bidplayer = i;
 	gameInfo.lastbids[i]=[gameInfo.bid,gameInfo.trump]; // logging bids
 	gameInfo.bidpasses=0;
@@ -91,7 +93,7 @@ function process_play(gameInfo,hand,message) { // if hand is null, means someone
     var name=message.name;
     var i = gameInfo.playerNames.indexOf(name); // player number
     if (i != gameInfo.turn) return false; // playing out of turn
-    var j = message.arg; // played card
+    var j = +message.arg; // played card
     if (hand!==null) {
 	var k = hand.indexOf(j);
 	if (k<0) return false; // card not in hand
