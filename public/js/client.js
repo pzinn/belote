@@ -144,36 +144,6 @@ function drawTricks() {
     }
 }
 
-/*
-function redrawHandCards() { // same as drawHandCards except do minimal change
-   for (var i=0; i<4; i++)
-    {
-	var k=(i+4-pos)%4; // position relative to me
-	if (i!=pos) // don't draw one's cards
-	    if (oldgameInfo.numcards[i]<gameInfo.numcards[i])
-		for (var j=oldgameInfo.numcards[i]; j<gameInfo.numcards[i]; j++)
-		    updatePic(document.getElementById(dirs[k]+j),prefix+cols[i]+"_back.png");
-	    else
-	      for (var j=gameInfo.numcards[i]; j<oldgameInfo.numcards[i]; j++)
-		    updatePic(document.getElementById(dirs[k]+j),prefix+"cardholder.png");
-    }
-}
-*/
-/*
-function redrawTricks() {
-   for (var i=0; i<4; i++)
-    {
-	var k=(i+4-pos)%4; // position relative to me
-	if (oldgameInfo.tricks[i].length<gameInfo.tricks[i].length)
-	    for (var j=oldgameInfo.tricks[i].length/4; j<gameInfo.tricks[i].length/4; j++)
-		updatePic(document.getElementById("trick"+dirs[k]+j),prefix+cols[i]+"_back.png");
-	else
-	    for (var j=gameInfo.tricks[i].length/4; j<oldgameInfo.tricks[i].length/4; j++)
-		updatePic(document.getElementById("trick"+dirs[k]+j),prefix+"cardholder.png");
-    }
-}
-*/
-
 function drawPlayedCard(i) {
     var k=(i+4-pos)%4; // position relative to me
     // the played cards
@@ -463,7 +433,10 @@ socket.on("play", function(message) {
 		cardel.classList.remove("active");
 	    }
 	} else {
-	    // TODO
+	    var k=(i+4-pos)%4; // position relative to me
+	    // pick a random card? TODO
+	    var j=gameInfo.numcards[i];
+	    updatePic(document.getElementById(dirs[k]+j),prefix+"cardholder.png");
 	}
 	// played card TODO animation
 	if (gameInfo.lastTrick!==null) { // trick animation
@@ -491,33 +464,6 @@ socket.on("play", function(message) {
 	signalTurn();
     }
 });
-
-
-    /*
-    if ((gameInfo.turn==pos)&&gameInfo.playing&&validCard(gameInfo.playedCards,gameInfo.firstplayedCard,hand,gameInfo.trump,gameInfo.turn,c)) {
-	gameInfo.turn=(pos+1)%4; // a bit early; may have to undo
-	signalTurn();
-	// also possible issue of desync with server if play is rejected by server (which shouldn't happen of course)
-	// remove card
-	var j=hand.indexOf(c);
-	if (j<0) alert("can't find card!");
-	hand.splice(j,1);
-	// update pictures
-	for (var i=0; i<8; i++)
-	{
-	    var cardel=document.getElementById(dirs[0]+i);
-	    if (cardel.alt==c)
-	    {
-		cardel.src="images/cards/cardholder.png";
-		cardel.alt=-1;
-	    }
-	    cardel.classList.remove("active");
-	}
-	var cardel=document.getElementById(dirs[0]+"P"); // the played area
-	cardel.src=prefix+"card"+c+".png";
-*/
-	
-
 
 
 // lame conversion

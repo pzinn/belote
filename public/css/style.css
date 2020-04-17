@@ -65,8 +65,8 @@ ul.list-group {
     position: absolute;
     top: 40px;
     left: 50%;
-    transform: translate(-50%,0%);
     white-space: nowrap;
+    transform: translate(-50%,0%) rotate(180deg);
 }
 
 #biddingN {
@@ -117,7 +117,7 @@ ul.list-group {
     position: absolute;
     right: 0px;
     top: 50%;
-    transform: translate(50%,-50%) rotate(90deg) translate(0,50%) translate(0,40px);
+    transform: translate(50%,-50%) rotate(-90deg) translate(0,-50%) translate(0,-40px);
     white-space: nowrap;
 }
 
@@ -233,9 +233,9 @@ ul.list-group {
 
 #trickN {
     position: absolute;
-    right:55%;
+    left:55%;
     top: 0px;
-    transform: scale(0.25) rotate(90deg);
+    transform: scale(0.25) rotate(-90deg);
     white-space: nowrap;
 }
 
@@ -249,9 +249,9 @@ ul.list-group {
 
 #trickE {
     position: absolute;
-    right:55%;
+    left:55%;
     top: 0px;
-    transform: scale(0.25) rotate(90deg);
+    transform: scale(0.25) rotate(-90deg);
     white-space: nowrap;
 }
 
