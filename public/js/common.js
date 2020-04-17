@@ -123,7 +123,6 @@ function process_play(gameInfo,hand,message) { // if hand is null, means someone
 	    if (v<vm) { vm=v; im=ii; }
 	}
 	gameInfo.turn=im;
-//	io.in(room).emit("gameInfo",gameInfo); // send so people know which card was played last before cleaning up
 	// tricks
 	for (var ii=0; ii<4; ii++)
 	    gameInfo.tricks[im].push(gameInfo.playedCards[ii]);
@@ -141,49 +140,17 @@ function process_play(gameInfo,hand,message) { // if hand is null, means someone
 		    var c=gameInfo.tricks[ii][jj];
 		    gameInfo.roundScores[ii%2] += suit(c)==gameInfo.trump ? trumpvalue[c%8] : nontrumpvalue[c%8];
 		}
-/*
-	    io.in(room).emit("message", {
-		name: "Broadcast",
-		text: gameInfo.playerNames[0]+"/"+gameInfo.playerNames[2]+": "+gameInfo.roundScores[0]+" pts<br/>"
-		    +gameInfo.playerNames[1]+"/"+gameInfo.playerNames[3]+": "+gameInfo.roundScores[1]+" pts",
-		timestamp: moment().valueOf()
-	    });
-*/
 	    // scorekeeping
+	    gameInfo.bidSuccess= ((gameInfo.roundScores[gameInfo.bidplayer%2]>81)
+			 &&(((gameInfo.bid=="all")&&(gameInfo.tricks[gameInfo.bidplayer].length+gameInfo.tricks[(gameInfo.bidplayer+2)%4].length==8))
+			    ||((gameInfo.bid!="all")&&(gameInfo.roundScores[gameInfo.bidplayer%2]>gameInfo.bid))));
+	    gameInfo.scores[(gameInfo.bidplayer+(gameInfo.bidSucesss?0:1))%2]+=gameInfo.bid == "all" ? 250 : gameInfo.bid;
 	    /*
 	      for (var ii=0; ii<2; ii++)
 	      gameInfo.scores[ii]+=10*Math.round(gameInfo.roundScores[ii]/10); // variation of the rules
 	    */
-	    if ((gameInfo.roundScores[gameInfo.bidplayer%2]>81)
-		&&(((gameInfo.bid=="all")&&(gameInfo.tricks[gameInfo.bidplayer].length+gameInfo.tricks[(gameInfo.bidplayer+2)%4].length==8))
-		   ||((gameInfo.bid!="all")&&(gameInfo.roundScores[gameInfo.bidplayer%2]>gameInfo.bid)))) {
-		gameInfo.scores[gameInfo.bidplayer%2]+=gameInfo.bid == "all" ? 250 : gameInfo.bid;
-/*
-		io.in(room).emit("message", {
-		    name: "Broadcast",
-		    text: "Bid successful<br/>"
-			+"Total "+gameInfo.playerNames[0]+"/"+gameInfo.playerNames[2]+": "+gameInfo.scores[0]+" pts<br/>"
-			+"Total "+gameInfo.playerNames[1]+"/"+gameInfo.playerNames[3]+": "+gameInfo.scores[1]+" pts",
-		    timestamp: moment().valueOf()
-		});
-*/
-	    }
-	    else {
-		gameInfo.scores[(gameInfo.bidplayer+1)%2]+=gameInfo.bid == "all" ? 250 : gameInfo.bid;
-		/*
-		io.in(room).emit("message", {
-		    name: "Broadcast",
-		    text: "Bid unsuccessful<br/>"
-			+"Total "+gameInfo.playerNames[0]+"/"+gameInfo.playerNames[2]+": "+gameInfo.scores[0]+" pts<br/>"
-			+"Total "+gameInfo.playerNames[1]+"/"+gameInfo.playerNames[3]+": "+gameInfo.scores[1]+" pts",
-		    timestamp: moment().valueOf()
-		});
-*/
-	    }
+
 	    gameInfo.deck=gameInfo.tricks[0].concat(gameInfo.tricks[1],gameInfo.tricks[2],gameInfo.tricks[3]); // reform the deck
-//	    io.in(room).emit("gameInfo",gameInfo); // show cleanup
-//	    setTimeout(startRound,5000,room);
-//	    return;
 	}
     }
     else gameInfo.turn=(gameInfo.turn+1)%4;
