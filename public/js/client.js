@@ -16,7 +16,7 @@ var pos=-1; // my number in game
 var gameInfo=null; // public info on current game
 var hand=[]; // my hand
 var auto=(name[0]=="@"); // TEMP obviously
-var animation=false; // the little trick animation
+var trickAnimation=false; // the little trick animation
 
 var dirs=["S","W","N","E"];
 var prefix="images/cards/";
@@ -148,9 +148,10 @@ function drawPlayedCard(i) {
     var k=(i+4-pos)%4; // position relative to me
     // the played cards
     //	if ((oldgameInfo===null)||(gameInfo.playedCards[i]!==oldgameInfo.playedCards[i]))
-    updatePic(document.getElementById(dirs[k]+"P"), // the played area
-	      gameInfo.playedCards[i]>=0 ? prefix+"card"+gameInfo.playedCards[i]+".png"
-	      : prefix+"cardholder.png");
+    var cardel=document.getElementById(dirs[k]+"P");
+    if (!(cardel.hidden=gameInfo.playedCards[i]<0))
+    updatePic(cardel, // the played area
+	      prefix+"card"+gameInfo.playedCards[i]+".png");
 }
 
 function drawPlayedCards() {
@@ -164,7 +165,7 @@ function drawCards() {
     
     // played cards if applicable
     document.getElementById("playedcards").hidden=!gameInfo.playing;
-    if ((gameInfo.playing)&&(!animation)) drawPlayedCards();
+    if (gameInfo.playing) drawPlayedCards();
 }
 
 function drawBid(j) {
@@ -244,8 +245,8 @@ socket.on("gameInfo", function(gameInfo1) {
     document.getElementById("score2").innerHTML=gameInfo.scores[1];
 
     // fix for annoying lack of animation problem TEMP?
-    if ((!gameInfo.playing)&&animation) {
-	animation=false;
+    if ((!gameInfo.playing)&&trickAnimation) {
+	trickAnimation=false;
 	document.getElementById("playedcards").classList.remove("trick","N","E","S","W");	
     }
     
@@ -416,10 +417,15 @@ function play(c) {
     });
 }
 
+var cardTransform= ["translate(-50%,0%)","translate(-50%,-50%) rotate(90deg) translate(0,-50%)","translate(-50%,0%) rotate(180deg)","translate(50%,-50%) rotate(-90deg) translate(0,-50%)"];
+for (var i=0; i<4; i++)
+    cardTransform[i]+=" translate(0px,170px)"; // very rough!
+
 socket.on("play", function(message) {
     var name=message.name;
     var i = gameInfo.playerNames.indexOf(name); // player number
     if (process_play(gameInfo, i==pos ? hand : null, message)) { // succesful play: update graphics
+	var k=(i+4-pos)%4; // position relative to me
 	if (i==pos) {
 	    // update pictures
 	    for (var j=0; j<8; j++)
@@ -433,24 +439,33 @@ socket.on("play", function(message) {
 		cardel.classList.remove("active");
 	    }
 	} else {
-	    var k=(i+4-pos)%4; // position relative to me
 	    // pick a random card? TODO
 	    var j=gameInfo.numcards[i];
 	    updatePic(document.getElementById(dirs[k]+j),prefix+"cardholder.png");
 	}
-	// played card TODO animation
+	// played card animation
+	cardel=document.getElementById(dirs[k]+"P");
+	cardel.style.transition="none";
+	cardel.style.transform=cardTransform[k];
+	setTimeout(function(k){
+	    cardel=document.getElementById(dirs[k]+"P");
+	    cardel.style.transition="transform 0.5s linear";
+	    cardel.style.transform="";
+	},1,k);
 	if (gameInfo.lastTrick!==null) { // trick animation
 	    gameInfo.playedCards[i]=gameInfo.lastTrick[i]; // eww
 	    drawPlayedCard(i);
 	    gameInfo.playedCards[i]=-1; // eww
-	    if (animation) document.getElementById("playedcards").classList.remove("trick","N","E","S","W"); // fix for annoying lack of animation problem issue TEMP?
-	    document.getElementById("playedcards").addEventListener("transitionend", function() {
-		animation=false;
+	    if (trickAnimation) document.getElementById("playedcards").classList.remove("trick","N","E","S","W"); // fix for annoying lack of animation problem issue TEMP?
+	    setTimeout( function() {
+//	    document.getElementById("playedcards").addEventListener("transitionend", function() {
+		trickAnimation=false;
 		drawPlayedCards();
 		drawTricks();
-		this.classList.remove("trick","N","E","S","W");
-	    });
-	    animation=true;
+		document.getElementById("playedcards").classList.remove("trick","N","E","S","W");
+//		this.classList.remove("trick","N","E","S","W");
+	    },2000);
+	    trickAnimation=true;
 	    document.getElementById("playedcards").classList.add("trick",dirs[(gameInfo.turn+4-pos)%4]);
 	}
 	else drawPlayedCard(i);

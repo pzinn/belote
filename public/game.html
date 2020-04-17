@@ -27,11 +27,17 @@
         <div class="col-md-6 well" style="min-height:900px;min-width:900px;">
 	  <div class="ready"><label class="switch"><input type="checkbox" id="ready" onclick="ready(this.checked);"><span class="slider round"></span></label></div>
 	  <div id="bid"></div>
-	  <div hidden id="playedcards">
-	    <img src="images/cards/cardholder.png" class="card" id="NP"><br/>
-	    <img src="images/cards/cardholder.png" class="card" id="WP">
-	    <img src="images/cards/cardholder.png" class="card" id="EP"><br/>
-	    <img src="images/cards/cardholder.png" class="card" id="SP"><br/>
+	  <div hidden id="playedcards" class="playedcards">
+	    <img src="images/cards/cardholder.png" hidden class="card NP" id="NP">
+	    <img src="images/cards/cardholder.png" hidden class="card WP" id="WP">
+	    <img src="images/cards/cardholder.png" hidden class="card EP" id="EP">
+	    <img src="images/cards/cardholder.png" hidden class="card SP" id="SP">
+	  </div>
+	  <div class="playedcards">
+	    <img src="images/cards/cardholder.png" class="card NP">
+	    <img src="images/cards/cardholder.png" class="card WP">
+	    <img src="images/cards/cardholder.png" class="card EP">
+	    <img src="images/cards/cardholder.png" class="card SP">
 	  </div>
 	  <div id="Nname"></div>
 	  <div id="cardareaN">
@@ -70,7 +76,8 @@
 	    <button class="btn btn-default" id="suit1N" disabled="disabled" style="color:red;font-size:200%">&hearts;</button>
 	    <button class="btn btn-default" id="suit2N" disabled="disabled" style="color:red;font-size:200%">&diams;</button>
 	    <button class="btn btn-default" id="suit3N" disabled="disabled" style="color:black;font-size:200%">&clubs;</button>
-	    <button class="btn btn-default" id="passN" disabled="disabled" style="float: right;font-size:200%">PASS</button>
+	    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	    <button class="btn btn-default" id="passN" disabled="disabled" style="font-size:200%">PASS</button>
 	  </div>
 	  <div id="Wname"></div>
 	  <div id="cardareaW">
@@ -174,7 +181,8 @@
 	    <button class="btn btn-default" id="suit1S" onclick="bidsuit(1);" disabled="disabled" style="color:red;font-size:200%">&hearts;</button>
 	    <button class="btn btn-default" id="suit2S" onclick="bidsuit(2);" disabled="disabled" style="color:red;font-size:200%">&diams;</button>
 	    <button class="btn btn-default" id="suit3S" onclick="bidsuit(3);" disabled="disabled" style="color:black;font-size:200%">&clubs;</button>
-	    <button class="btn btn-default" id="passS"  onclick="bidpass();" disabled="disabled" style="float: right;font-size:200%">PASS</button>
+	    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	    <button class="btn btn-default" id="passS"  onclick="bidpass();" disabled="disabled" style="font-size:200%">PASS</button>
 	    <br/>
 	    <button class="btn btn-default" id="80S" onclick="prebid(80);" disabled="disabled">80</button>
 	    <button class="btn btn-default" id="90S" onclick="prebid(90);" disabled="disabled">90</button>

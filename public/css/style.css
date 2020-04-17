@@ -129,7 +129,7 @@ ul.list-group {
     white-space: nowrap;
 }
 
-#playedcards {
+.playedcards {
     position: absolute;
     left: 50%;
     top: 50%;
@@ -138,51 +138,55 @@ ul.list-group {
     height: 275px;
 }
 
-#NP {
-    position:absolute;
-    top:0px;
-    left:50%;
-    transform: translate(-50%,0%);
+#playedcards {
+    z-index: 1;
 }
-#WP {
-    position:absolute;
-    left:0px;
-    top:50%;
-    transform: translate(-50%,-50%) rotate(90deg) translate(0,-50%);
-}
-#SP {
+
+.SP {
     position:absolute;
     bottom:0px;
     left:50%;
     transform: translate(-50%,0%);
 }
-#EP {
+.WP {
+    position:absolute;
+    left:0px;
+    top:50%;
+    transform: translate(-50%,-50%) rotate(90deg) translate(0,-50%);
+}
+.NP {
+    position:absolute;
+    top:0px;
+    left:50%;
+    transform: translate(-50%,0%) rotate(180deg);
+}
+.EP {
     position:absolute;
     right:0px;
     top:50%;
-    transform: translate(50%,-50%) rotate(90deg) translate(0,50%);
+    transform: translate(50%,-50%) rotate(-90deg) translate(0,-50%);
 }
 
-#playedcards.trick {
+.playedcards.trick {
     transform: translate(-50%,-50%) scale(0.1);
     transition-duration: 1s;
     transition-timing-function: ease-in;
-    transition-delay: 0.2s;
+    transition-delay: 1s;
 }
 
-#playedcards.W {
+.playedcards.W {
     left: 0%;
     top: 50%;
 }
-#playedcards.E {
+.playedcards.E {
     left: 100%;
     top: 50%;
 }
-#playedcards.S {
+.playedcards.S {
     left: 50%;
     top: 100%;
 }
-#playedcards.N {
+.playedcards.N {
     left: 50%;
     top: 0%;
 }
