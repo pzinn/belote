@@ -220,9 +220,14 @@ io.on("connection", function(socket) {
 		timestamp: moment().valueOf()
 	    });
 	    if (Math.max(...gameInfo[room].numcards)==0) { // end of round
+		var msg = gameInfo[room].playerNames[0]+"/"+gameInfo[room].playerNames[2]+": "+gameInfo[room].roundScores[0]+" pts<br/>"
+		    +gameInfo[room].playerNames[1]+"/"+gameInfo[room].playerNames[3]+": "+gameInfo[room].roundScores[1]+" pts<br/>";
+		msg += gameInfo[room].bidSuccess ? "Bid successful<br/>" : "Bid unsuccessful<br/>";
+		msg += "Total "+gameInfo[room].playerNames[0]+"/"+gameInfo[room].playerNames[2]+": "+gameInfo[room].scores[0]+" pts<br/>"
+		    +"Total "+gameInfo[room].playerNames[1]+"/"+gameInfo[room].playerNames[3]+": "+gameInfo[room].scores[1]+" pts";
 		io.in(room).emit("message", {
 		    name: "Broadcast",
-		    text: "TEMP end of round msg",
+		    text: msg,
 		    timestamp: moment().valueOf()
 		});
 		setTimeout(startRound,5000,room);

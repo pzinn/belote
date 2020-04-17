@@ -134,29 +134,29 @@ function process_play(gameInfo,hand,message) { // if hand is null, means someone
 	// is it last round?
 	if (gameInfo.numcards[0]==0) { // not great
 	    // score calculation
-	    var sc=[0,0];
-	    sc[im%2]=10; // 10 extra for last trick
+	    gameInfo.roundScores=[0,0];
+	    gameInfo.roundScores[im%2]=10; // 10 extra for last trick
 	    for (var ii=0; ii<4; ii++)
 		for (var jj=0; jj<gameInfo.tricks[ii].length; jj++) {
 		    var c=gameInfo.tricks[ii][jj];
-		    sc[ii%2] += suit(c)==gameInfo.trump ? trumpvalue[c%8] : nontrumpvalue[c%8];
+		    gameInfo.roundScores[ii%2] += suit(c)==gameInfo.trump ? trumpvalue[c%8] : nontrumpvalue[c%8];
 		}
 /*
 	    io.in(room).emit("message", {
 		name: "Broadcast",
-		text: gameInfo.playerNames[0]+"/"+gameInfo.playerNames[2]+": "+sc[0]+" pts<br/>"
-		    +gameInfo.playerNames[1]+"/"+gameInfo.playerNames[3]+": "+sc[1]+" pts",
+		text: gameInfo.playerNames[0]+"/"+gameInfo.playerNames[2]+": "+gameInfo.roundScores[0]+" pts<br/>"
+		    +gameInfo.playerNames[1]+"/"+gameInfo.playerNames[3]+": "+gameInfo.roundScores[1]+" pts",
 		timestamp: moment().valueOf()
 	    });
 */
 	    // scorekeeping
 	    /*
 	      for (var ii=0; ii<2; ii++)
-	      gameInfo.scores[ii]+=10*Math.round(sc[ii]/10); // variation of the rules
+	      gameInfo.scores[ii]+=10*Math.round(gameInfo.roundScores[ii]/10); // variation of the rules
 	    */
-	    if ((sc[gameInfo.bidplayer%2]>81)
+	    if ((gameInfo.roundScores[gameInfo.bidplayer%2]>81)
 		&&(((gameInfo.bid=="all")&&(gameInfo.tricks[gameInfo.bidplayer].length+gameInfo.tricks[(gameInfo.bidplayer+2)%4].length==8))
-		   ||((gameInfo.bid!="all")&&(sc[gameInfo.bidplayer%2]>gameInfo.bid)))) {
+		   ||((gameInfo.bid!="all")&&(gameInfo.roundScores[gameInfo.bidplayer%2]>gameInfo.bid)))) {
 		gameInfo.scores[gameInfo.bidplayer%2]+=gameInfo.bid == "all" ? 250 : gameInfo.bid;
 /*
 		io.in(room).emit("message", {
@@ -174,8 +174,8 @@ function process_play(gameInfo,hand,message) { // if hand is null, means someone
 		io.in(room).emit("message", {
 		    name: "Broadcast",
 		    text: "Bid unsuccessful<br/>"
-			+"Total "+gameInfo.playerNames[0]+"/"+gameInfo.playerNames[2]+": "+sc[0]+" pts<br/>"
-			+"Total "+gameInfo.playerNames[1]+"/"+gameInfo.playerNames[3]+": "+sc[1]+" pts",
+			+"Total "+gameInfo.playerNames[0]+"/"+gameInfo.playerNames[2]+": "+gameInfo.scores[0]+" pts<br/>"
+			+"Total "+gameInfo.playerNames[1]+"/"+gameInfo.playerNames[3]+": "+gameInfo.scores[1]+" pts",
 		    timestamp: moment().valueOf()
 		});
 */
