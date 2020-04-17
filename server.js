@@ -210,114 +210,19 @@ io.on("connection", function(socket) {
     socket.on("play", function(message) { //	
 	var name = clientInfo[socket.id].name; // should be same as message.name
 	var room = clientInfo[socket.id].room;
-	if (!gameInfo[room].playing) return -1; // not playing yet
-	var i = gameInfo[room].playerNames.indexOf(name); // player number
-	if (i != gameInfo[room].turn) return -1; // playing out of turn
-	var j = message.arg; // played card
-	var k = gameCards[room][i].indexOf(j);
-	if (k<0) return -1; // card not in hand
-	if (!common.validCard(gameInfo[room].playedCards,gameInfo[room].firstplayedCard,gameCards[room][i],gameInfo[room].trump,gameInfo[room].turn,j)) return -1;
-
-	// remove card from hand
-	gameCards[room][i].splice(k,1);
-	gameInfo[room].numcards[i]--;
-	gameInfo[room].playedCards[i]=j;
-	
-	// process the actual play
-	if (gameInfo[room].firstplayedCard<0) { // first player determines suit
-	    gameInfo[room].firstplayedCard=j;
-	}
-	if (gameInfo[room].playedCards.indexOf(-1)<0) { // everyone has played
-	    gameInfo[room].turn=-1;
-	    // determine who won the trick
-	    // either highest trump
-	    var vm=1000; var im;
-	    var s; var s0=common.suit(gameInfo[room].firstplayedCard);
-	    var v;
-	    for (var ii=0; ii<4; ii++)
-	    {
-		s=common.suit(gameInfo[room].playedCards[ii]);
-		if (s==gameInfo[room].trump) v=common.trumpordering[gameInfo[room].playedCards[ii]%8];
-		else if (s==s0) v=8+common.nontrumpordering[gameInfo[room].playedCards[ii]%8];
-		if (v<vm) { vm=v; im=ii; }
-	    }
-	    gameInfo[room].turn=im;
-	    io.in(room).emit("gameInfo",gameInfo[room]); // send so people know which card was played last before cleaning up
-	    // tricks
-	    for (var ii=0; ii<4; ii++)
-		gameInfo[room].tricks[im].push(gameInfo[room].playedCards[ii]);
-	    // clean up
-	    gameInfo[room].playedCards=[-1,-1,-1,-1];
-	    gameInfo[room].firstplayedCard=-1;
-	    // is it last round?
-	    if (gameInfo[room].numcards[0]==0) { // not great
-		// score calculation
-		var sc=[0,0];
-		sc[im%2]=10; // 10 extra for last trick
-		for (var ii=0; ii<4; ii++)
-		    for (var jj=0; jj<gameInfo[room].tricks[ii].length; jj++) {
-			var c=gameInfo[room].tricks[ii][jj];
-			sc[ii%2] += common.suit(c)==gameInfo[room].trump ? common.trumpvalue[c%8] : common.nontrumpvalue[c%8];
-		    }
+	if (common.process_play(gameInfo[room],gameCards[room][gameInfo[room].turn],message)) {
+	    // lots of messaging to do
+	    if (Math.max(...gameInfo.numcards)==0) { // end of round
 		io.in(room).emit("message", {
 		    name: "Broadcast",
-		    text: gameInfo[room].playerNames[0]+"/"+gameInfo[room].playerNames[2]+": "+sc[0]+" pts<br/>"
-			+gameInfo[room].playerNames[1]+"/"+gameInfo[room].playerNames[3]+": "+sc[1]+" pts", 
+		    text: "TEMP end of round msg",
 		    timestamp: moment().valueOf()
 		});
-		// scorekeeping
-		/*
-		for (var ii=0; ii<2; ii++)
-		    gameInfo[room].scores[ii]+=10*Math.round(sc[ii]/10); // variation of the rules
-		*/
-		if ((sc[gameInfo[room].bidplayer%2]>81)
-		    &&(((gameInfo[room].bid=="all")&&(gameInfo[room].tricks[gameInfo[room].bidplayer].length+gameInfo[room].tricks[(gameInfo[room].bidplayer+2)%4].length==8))
-		       ||((gameInfo[room].bid!="all")&&(sc[gameInfo[room].bidplayer%2]>gameInfo[room].bid)))) {
-		    gameInfo[room].scores[gameInfo[room].bidplayer%2]+=gameInfo[room].bid == "all" ? 250 : gameInfo[room].bid;
-		    io.in(room).emit("message", {
-			name: "Broadcast",
-			text: "Bid successful<br/>"
-			+"Total "+gameInfo[room].playerNames[0]+"/"+gameInfo[room].playerNames[2]+": "+gameInfo[room].scores[0]+" pts<br/>"
-			+"Total "+gameInfo[room].playerNames[1]+"/"+gameInfo[room].playerNames[3]+": "+gameInfo[room].scores[1]+" pts",
-			timestamp: moment().valueOf()
-		    });
-		}
-		else {
-		    gameInfo[room].scores[(gameInfo[room].bidplayer+1)%2]+=gameInfo[room].bid == "all" ? 250 : gameInfo[room].bid;
-		    io.in(room).emit("message", {
-			name: "Broadcast",
-			text: "Bid unsuccessful<br/>"
-			    +"Total "+gameInfo[room].playerNames[0]+"/"+gameInfo[room].playerNames[2]+": "+sc[0]+" pts<br/>"
-			    +"Total "+gameInfo[room].playerNames[1]+"/"+gameInfo[room].playerNames[3]+": "+sc[1]+" pts",
-			timestamp: moment().valueOf()
-		    });
-		}
-		gameInfo[room].deck=gameInfo[room].tricks[0].concat(gameInfo[room].tricks[1],gameInfo[room].tricks[2],gameInfo[room].tricks[3]); // reform the deck
-		io.in(room).emit("gameInfo",gameInfo[room]); // show cleanup
 		setTimeout(startRound,5000,room);
-		return;
 	    }
-	    io.in(room).emit("message", {
-		name: "Broadcast",
-		text: name+" plays "+common.cardshtml[j]+"<br/>"
-		    +gameInfo[room].playerNames[im]+" wins, his turn",
-		timestamp: moment().valueOf()
-	    });
-	    setTimeout(function(room) {	io.in(room).emit("gameInfo",gameInfo[room]); },2000,room); // still not quite right
-	    return;
 	}
-	else gameInfo[room].turn=(gameInfo[room].turn+1)%4;
-
-	// wrap up
-	io.in(room).emit("message", {
-	    name: "Broadcast",
-	    text: name+" plays "+common.cardshtml[j]+"<br/>"
-		+gameInfo[room].playerNames[gameInfo[room].turn]+"'s turn",
-	    timestamp: moment().valueOf()
-	});
-	io.in(room).emit("gameInfo",gameInfo[room]);// resend all the info; is that a bit much?
     });
-});
+}
 
 http.listen(PORT, function() {
     console.log("server started");

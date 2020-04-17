@@ -282,7 +282,7 @@ socket.on("gameInfo", function(gameInfo1) {
     
     document.getElementById("ready").disabled=true;
     document.getElementById("ready").checked=true;
-    // determine my number -- wait, am I a player??
+    // determine my number -- if I'm a player
     pos=gameInfo.playerNames.indexOf(name);
 	
     var message;
