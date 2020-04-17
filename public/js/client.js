@@ -129,8 +129,6 @@ function updatePic(img,file) {
     img.src=file;
 }
 
-var oldgameInfo; // eww
-
 function drawHandCards() {
     for (var i=0; i<4; i++) {
 	var k=(i+4-pos)%4; // position relative to me
@@ -150,6 +148,7 @@ function drawTricks() {
     }
 }
 
+/*
 function redrawHandCards() { // same as drawHandCards except do minimal change
    for (var i=0; i<4; i++)
     {
@@ -163,7 +162,7 @@ function redrawHandCards() { // same as drawHandCards except do minimal change
 		    updatePic(document.getElementById(dirs[k]+j),prefix+"cardholder.png");
     }
 }
-
+*/
 /*
 function redrawTricks() {
    for (var i=0; i<4; i++)
@@ -184,7 +183,7 @@ function drawPlayedCards() {
     {
 	var k=(i+4-pos)%4; // position relative to me
 	// the played cards
-	if ((oldgameInfo===null)||(gameInfo.playedCards[i]!==oldgameInfo.playedCards[i]))
+//	if ((oldgameInfo===null)||(gameInfo.playedCards[i]!==oldgameInfo.playedCards[i]))
 	updatePic(document.getElementById(dirs[k]+"P"), // the played area
 		  gameInfo.playedCards[i]>=0 ? prefix+"card"+gameInfo.playedCards[i]+".png"
 		  : prefix+"cardholder.png");
@@ -192,10 +191,7 @@ function drawPlayedCards() {
 }
 
 function drawCards() {
-    if (oldgameInfo===null)
-	drawHandCards();
-    else
-	redrawHandCards();
+    drawHandCards();
     if (!animation) drawTricks();
     // bidding stuff
     for (var i=0; i<4; i++)
@@ -230,13 +226,13 @@ function drawBids() {
 
 function signalTurn() {
     var k;
-    if (oldgameInfo!=null)
+    for (i=0; i<4; i++)
     {
-	k=(oldgameInfo.turn+4-pos)%4; // position relative to me
-	document.getElementById(dirs[k]+"name").style.border="3px solid transparent";
+	var k=(i+4-pos)%4; // position relative to me
+	var nameel=document.getElementById(dirs[k]+"name");
+	nameel.innerHTML=gameInfo.playerNames[i];
+	nameel.style.border= i==gameInfo.turn ? "3px solid  #FF0000" : "3px solid transparent";
     }
-    k=(gameInfo.turn+4-pos)%4; // position relative to me
-    document.getElementById(dirs[k]+"name").style.border="3px solid  #FF0000";
 
     if (gameInfo.turn==pos) {
 	if (gameInfo.playing)
@@ -269,51 +265,41 @@ function signalTurn() {
 
 socket.on("gameInfo", function(gameInfo1) {
     var i;
-    oldgameInfo=gameInfo; gameInfo=gameInfo1;
+    gameInfo=gameInfo1;
 
-    // general stuff (TEMP?)
     document.getElementById("bid").innerHTML= gameInfo.playing ? gameInfo.bid +" "+suitshtml[gameInfo.trump] : "";
+    // TEMP need better scoring
+    document.getElementById("scoresname1").innerHTML=gameInfo.playerNames[0]+"<br/>"+gameInfo.playerNames[2];
+    document.getElementById("scoresname2").innerHTML=gameInfo.playerNames[1]+"<br/>"+gameInfo.playerNames[3];
     document.getElementById("score1").innerHTML=gameInfo.scores[0];
     document.getElementById("score2").innerHTML=gameInfo.scores[1];
 
     // fix for annoying lack of animation problem
     if ((!gameInfo.playing)&&animation) {
-	animation=false; oldGameInfo=null;
+	animation=false;
 	document.getElementById("playedcards").classList.remove("trick","N","E","S","W");	
     }
     
-    if (oldgameInfo===null) { // first time (better criterion?) plus should differentiate first round etc
-	document.getElementById("ready").disabled=true;
-	document.getElementById("ready").checked=true;
-	// determine my number -- wait, am I a player??
-	pos=gameInfo.playerNames.indexOf(name);
-	for (i=0; i<4; i++)
-	  {
-	    var k=(i+4-pos)%4; // position relative to me
-	    var nameel=document.getElementById(dirs[k]+"name");
-	    nameel.innerHTML=gameInfo.playerNames[i];
-	    nameel.style.border="3px solid transparent";
-	  }
+    document.getElementById("ready").disabled=true;
+    document.getElementById("ready").checked=true;
+    // determine my number -- wait, am I a player??
+    pos=gameInfo.playerNames.indexOf(name);
 	
-	var message;
-	if (gameInfo.playing) message = {
-	    text: "Trump is "+suitshtml[gameInfo.trump]+"<br/>"
-		+gameInfo.playerNames[gameInfo.turn]+"'s turn",
-	    name: "System",
-	    timestamp : moment().valueOf()
-	};
-	else if (gameInfo.bidding) message = {
-	    text: "Current bid is "+(gameInfo.bidplayer>=0 ? gameInfo.bid+" "+suitshtml[gameInfo.trump]+" ("+gameInfo.playerNames[gameInfo.bidplayer]+")" : "none")
-		+"<br/>"+gameInfo.playerNames[gameInfo.turn]+"'s turn",
-	    name: "System",
-	    timestamp : moment().valueOf()
-	}
-	else message=welcomeText;
-	insertMessage(message,"");
-	// write names in scores table
-	document.getElementById("scoresname1").innerHTML=gameInfo.playerNames[0]+"<br/>"+gameInfo.playerNames[2];
-	document.getElementById("scoresname2").innerHTML=gameInfo.playerNames[1]+"<br/>"+gameInfo.playerNames[3];
+    var message;
+    if (gameInfo.playing) message = {
+	text: "Trump is "+suitshtml[gameInfo.trump]+"<br/>"
+	    +gameInfo.playerNames[gameInfo.turn]+"'s turn",
+	name: "System",
+	timestamp : moment().valueOf()
+    };
+    else if (gameInfo.bidding) message = {
+	text: "Current bid is "+(gameInfo.bidplayer>=0 ? gameInfo.bid+" "+suitshtml[gameInfo.trump]+" ("+gameInfo.playerNames[gameInfo.bidplayer]+")" : "none")
+	    +"<br/>"+gameInfo.playerNames[gameInfo.turn]+"'s turn",
+	name: "System",
+	timestamp : moment().valueOf()
     }
+    else message=welcomeText;
+    insertMessage(message,"");
 
     drawCards();
 
@@ -324,7 +310,6 @@ socket.on("gameInfo", function(gameInfo1) {
 	if (animation) document.getElementById("playedcards").classList.remove("trick","N","E","S","W"); // fix for annoying lack of animation problem issue
 	document.getElementById("playedcards").addEventListener("transitionend", function() {
 	    animation=false;
-	    oldgameInfo=null;
 	    drawPlayedCards();
 	    drawTricks();
 	    this.classList.remove("trick","N","E","S","W");
@@ -481,13 +466,12 @@ socket.on("bid", function(message) { // arg should be [bid,suit] where bid = num
 function play(c) {
     console.log("attempted play "+c);
     if (animation) {
-	animation=false; oldgameInfo=null;
+	animation=false;
 	drawPlayedCards();
 	drawTricks();
 	document.getElementById("playedcards").classList.remove("trick","N","E","S","W");
     }
     if ((gameInfo.turn==pos)&&gameInfo.playing&&validCard(gameInfo.playedCards,gameInfo.firstplayedCard,hand,gameInfo.trump,gameInfo.turn,c)) {
-	oldgameInfo = { turn : gameInfo.turn }; // bit of a hack
 	gameInfo.turn=(pos+1)%4; // a bit early; may have to undo
 	signalTurn();
 	// also possible issue of desync with server if play is rejected by server (which shouldn't happen of course)
