@@ -193,9 +193,6 @@ function drawPlayedCards() {
 function drawCards() {
     drawHandCards();
     if (!animation) drawTricks();
-    // bidding stuff
-    for (var i=0; i<4; i++)
-	document.getElementById("bidding"+dirs[i]).hidden=!gameInfo.bidding;
     
     // played cards if applicable
     document.getElementById("playedcards").hidden=!gameInfo.playing;
@@ -221,6 +218,8 @@ function drawBid(j) {
 }
 
 function drawBids() {
+    for (var i=0; i<4; i++)
+	document.getElementById("bidding"+dirs[i]).hidden=!gameInfo.bidding;
     for (var j=0; j<4; j++) drawBid(j);
 }
 
@@ -399,8 +398,6 @@ function ready(flag) {
     socket.emit("ready",flag);
 }
 
-// these functions below sohuld be rewritten because they redundant with "bid" TODO diff between primary and validated
-
 function removebtn() {
     var i;
     for (i=0; i<4; i++)
@@ -471,6 +468,7 @@ function play(c) {
 	drawTricks();
 	document.getElementById("playedcards").classList.remove("trick","N","E","S","W");
     }
+    /*
     if ((gameInfo.turn==pos)&&gameInfo.playing&&validCard(gameInfo.playedCards,gameInfo.firstplayedCard,hand,gameInfo.trump,gameInfo.turn,c)) {
 	gameInfo.turn=(pos+1)%4; // a bit early; may have to undo
 	signalTurn();
@@ -492,14 +490,25 @@ function play(c) {
 	}
 	var cardel=document.getElementById(dirs[0]+"P"); // the played area
 	cardel.src=prefix+"card"+c+".png";
+*/
 	
 	socket.emit("play", {
 	    name: name,
 	    timestamp : moment().valueOf(),
 	    arg: c
 	});
-    }
+    // }
 }
+
+socket.on("play", function(message) {
+    var name=message.name;
+    var i = gameInfo.playerNames.indexOf(name); // player number
+    if (process_play(gameInfo, i==pos ? hand : null, message)) { // succesful play: update graphics
+	drawCards(); // TEMP
+	signalTurn();
+    }
+});
+
 
 // lame conversion
 var escapeChars = {

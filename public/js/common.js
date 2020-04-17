@@ -88,14 +88,14 @@ function process_bid(gameInfo,message) {
 
 function process_play(gameInfo,hand,message) { // if hand is null, means someone else is playing than client so ignore that part
     if ((gameInfo===null)||(!gameInfo.playing)) return false; // not playing
+    var name=message.name;
     var i = gameInfo.playerNames.indexOf(name); // player number
     if (i != gameInfo.turn) return false; // playing out of turn
     var j = message.arg; // played card
-    if (!common.validCard(gameInfo.playedCards,gameInfo.firstplayedCard,j,gameInfo.trump,gameInfo.turn,j)) return false;
-
     if (hand!==null) {
 	var k = hand.indexOf(j);
 	if (k<0) return false; // card not in hand
+	if (!validCard(gameInfo.playedCards,gameInfo.firstplayedCard,hand,gameInfo.trump,gameInfo.turn,j)) return false;
 	// remove card from hand
 	hand.splice(k,1);
     }

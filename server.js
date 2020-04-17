@@ -211,8 +211,15 @@ io.on("connection", function(socket) {
 	var name = clientInfo[socket.id].name; // should be same as message.name
 	var room = clientInfo[socket.id].room;
 	if (common.process_play(gameInfo[room],gameCards[room][gameInfo[room].turn],message)) {
+	    io.in(room).emit("play", message);
 	    // lots of messaging to do
-	    if (Math.max(...gameInfo.numcards)==0) { // end of round
+	    io.in(room).emit("message", {
+		name: "Broadcast",
+		text: name+" plays "+common.cardshtml[message.arg]+"<br/>" // what about old syntax? TODO
+		    +gameInfo[room].playerNames[gameInfo[room].turn]+"'s turn",
+		timestamp: moment().valueOf()
+	    });
+	    if (Math.max(...gameInfo[room].numcards)==0) { // end of round
 		io.in(room).emit("message", {
 		    name: "Broadcast",
 		    text: "TEMP end of round msg",
@@ -222,7 +229,7 @@ io.on("connection", function(socket) {
 	    }
 	}
     });
-}
+});
 
 http.listen(PORT, function() {
     console.log("server started");
