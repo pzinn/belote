@@ -20,7 +20,7 @@ function suit(card) {
     return Math.floor(card/8);
 }
 
-function validCard(playedCards,firstplayedCard,hand,trump,turn,card) { // missing the rule that if partner is dominant, no need to trump
+function validCard(playedCards,firstplayedCard,hand,trump,turn,card) {
     var i;
     if (card<0) return false;
     if (firstplayedCard<0) return true; // first player can do anything
@@ -61,6 +61,31 @@ function validCard(playedCards,firstplayedCard,hand,trump,turn,card) { // missin
     return true;
 }
 
+function process_bid(gameInfo,message) {
+    if ((gameInfo===null)||(!gameInfo.bidding)) return false; // not bidding
+    var name=message.name;
+    var i = gameInfo.playerNames.indexOf(name); // player number
+    if (i != gameInfo.turn) return false; // playing out of turn
+    if (((typeof message.arg === "string") && (message.arg.toLowerCase()=="pass"))||((typeof message.arg[0] === "string") && (message.arg[0].toLowerCase()=="pass"))) {
+	gameInfo.lastbids[i]="pass"; // logging bids
+	gameInfo.bidpasses++;
+	if ((gameInfo.bidpasses==3)&&(gameInfo.bidplayer>=0)) {
+	    gameInfo.bidding=false;
+	    gameInfo.playing=true;
+	    gameInfo.turn=gameInfo.startingPlayer;
+	}
+    } else {
+	if ((message.arg[0]!="all")&&((message.arg[0]<=gameInfo.bid)||(gameInfo.bid=="all")||(message.arg[0]%10!=0)||(message.arg[0]>160))) return false; // shouldn't happen
+	gameInfo.bid=message.arg[0];
+	gameInfo.trump= typeof message.arg[1] === "string" ? suitshtml0.indexOf(message.arg[1]) : message.arg[1];
+	gameInfo.bidplayer = i;
+	gameInfo.lastbids[i]=[gameInfo.bid,gameInfo.trump]; // logging bids
+	gameInfo.bidpasses=0;
+    }
+    gameInfo.turn=(gameInfo.turn+1)%4;
+    return true;
+}
+
 // for server
 if (typeof exports !== 'undefined') {
     exports.cardshtml=cardshtml;
@@ -73,4 +98,5 @@ if (typeof exports !== 'undefined') {
     exports.nontrumpordering=nontrumpordering;
     exports.trumpvalue=trumpvalue;
     exports.nontrumpvalue=nontrumpvalue;
+    exports.process_bid=process_bid;
 }

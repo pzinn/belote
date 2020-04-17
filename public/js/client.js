@@ -206,6 +206,28 @@ function drawCards() {
     if ((gameInfo.playing)&&(!animation)) drawPlayedCards();
 }
 
+function drawBid(j) {
+    var k=(j+4-pos)%4; // position relative to me
+    for (var i=0; i<4; i++)
+	if ((gameInfo.lastbids[j] instanceof Array)&&(gameInfo.lastbids[j][1]==i))
+	    document.getElementById("suit"+i+dirs[k]).classList.add("btn-primary");
+    else
+	document.getElementById("suit"+i+dirs[k]).classList.remove("btn-primary");
+    for (var i=0; i<bidlist.length; i++)
+	if ((gameInfo.lastbids[j] instanceof Array)&&(gameInfo.lastbids[j][0]==bidlist[i]))
+	    document.getElementById(bidlist[i]+dirs[k]).classList.add("btn-primary");
+    else
+	document.getElementById(bidlist[i]+dirs[k]).classList.remove("btn-primary");
+    if (gameInfo.lastbids[j]=="pass")
+	document.getElementById("pass"+dirs[k]).classList.add("btn-primary");
+    else
+	document.getElementById("pass"+dirs[k]).classList.remove("btn-primary");
+}
+
+function drawBids() {
+    for (var j=0; j<4; j++) drawBid(j);
+}
+
 function signalTurn() {
     var k;
     if (oldgameInfo!=null)
@@ -215,6 +237,34 @@ function signalTurn() {
     }
     k=(gameInfo.turn+4-pos)%4; // position relative to me
     document.getElementById(dirs[k]+"name").style.border="3px solid  #FF0000";
+
+    if (gameInfo.turn==pos) {
+	if (gameInfo.playing)
+	    if (auto) setTimeout(autoplay,500); else showAllowed();
+	else if (gameInfo.bidding)
+	    if (auto) setTimeout(autobid,500); else {
+	      for (i=0; i<4; i++)
+		{
+		  document.getElementById("suit"+i+dirs[0]).classList.remove("btn-primary");
+		  document.getElementById("suit"+i+dirs[0]).disabled=false;
+		}
+	      for (i=0; i<bidlist.length; i++)
+		{
+		  document.getElementById(bidlist[i]+dirs[0]).classList.remove("btn-primary");
+		  document.getElementById(bidlist[i]+dirs[0]).disabled=false;
+		}
+	      document.getElementById("pass"+dirs[0]).classList.remove("btn-primary");
+	      document.getElementById("pass"+dirs[0]).disabled=false;
+	      mybid=mysuit=-1;
+	    }
+    } else if (gameInfo.bidding) {
+	      var i;
+	      for (i=0; i<4; i++)
+		  document.getElementById("suit"+i+dirs[0]).disabled=true;
+	      for (i=0; i<bidlist.length; i++)
+		  document.getElementById(bidlist[i]+dirs[0]).disabled=true;
+	      document.getElementById("pass"+dirs[0]).disabled=true;
+    }
 }
 
 socket.on("gameInfo", function(gameInfo1) {
@@ -265,30 +315,11 @@ socket.on("gameInfo", function(gameInfo1) {
 	document.getElementById("scoresname2").innerHTML=gameInfo.playerNames[1]+"<br/>"+gameInfo.playerNames[3];
     }
 
-    signalTurn();
-    
     drawCards();
 
-    if (gameInfo.bidding) {
-	for (var j=0; j<4; j++) {
-	    var k=(j+4-pos)%4; // position relative to me	    
-	    for (i=0; i<4; i++)
-		if ((gameInfo.lastbids[j] instanceof Array)&&(gameInfo.lastbids[j][1]==i))
-		    document.getElementById("suit"+i+dirs[k]).classList.add("btn-primary");
-	    else		
-		document.getElementById("suit"+i+dirs[k]).classList.remove("btn-primary");
-	    for (i=0; i<bidlist.length; i++)
-		if ((gameInfo.lastbids[j] instanceof Array)&&(gameInfo.lastbids[j][0]==bidlist[i]))
-		    document.getElementById(bidlist[i]+dirs[k]).classList.add("btn-primary");
-	    else
-		document.getElementById(bidlist[i]+dirs[k]).classList.remove("btn-primary");
-	    if (gameInfo.lastbids[j]=="pass")
-		document.getElementById("pass"+dirs[k]).classList.add("btn-primary");
-	    else
-		document.getElementById("pass"+dirs[k]).classList.remove("btn-primary");
-	}
-    }
+    if (gameInfo.bidding) drawBids();
 
+    // TODO: REMOVE
     if (gameInfo.playing&&(gameInfo.playedCards.indexOf(-1)<0)) { // everyone has played
 	if (animation) document.getElementById("playedcards").classList.remove("trick","N","E","S","W"); // fix for annoying lack of animation problem issue
 	document.getElementById("playedcards").addEventListener("transitionend", function() {
@@ -302,34 +333,9 @@ socket.on("gameInfo", function(gameInfo1) {
 	document.getElementById("playedcards").classList.add("trick",dirs[(gameInfo.turn+4-pos)%4]);
 	return;
     }
+    //
 
-    if (gameInfo.turn==pos) {
-	if (gameInfo.playing)
-	    if (auto) setTimeout(autoplay,500); else showAllowed();
-	else if (gameInfo.bidding)
-	    if (auto) setTimeout(autobid,500); else {
-	      for (i=0; i<4; i++)
-		{
-		  document.getElementById("suit"+i+dirs[0]).classList.remove("btn-primary");
-		  document.getElementById("suit"+i+dirs[0]).disabled=false;
-		}
-	      for (i=0; i<bidlist.length; i++)
-		{
-		  document.getElementById(bidlist[i]+dirs[0]).classList.remove("btn-primary");
-		  document.getElementById(bidlist[i]+dirs[0]).disabled=false;
-		}
-	      document.getElementById("pass"+dirs[0]).classList.remove("btn-primary");
-	      document.getElementById("pass"+dirs[0]).disabled=false;
-	      mybid=mysuit=-1;
-	    }
-    } else if (gameInfo.bidding) {
-	      var i;
-	      for (i=0; i<4; i++)
-		  document.getElementById("suit"+i+dirs[0]).disabled=true;
-	      for (i=0; i<bidlist.length; i++)
-		  document.getElementById(bidlist[i]+dirs[0]).disabled=true;
-	      document.getElementById("pass"+dirs[0]).disabled=true;
-    }    
+    signalTurn();
 });
 
 socket.on("hand", function(h) {
@@ -408,49 +414,69 @@ function ready(flag) {
     socket.emit("ready",flag);
 }
 
+// these functions below sohuld be rewritten because they redundant with "bid" TODO diff between primary and validated
+
+function removebtn() {
+    var i;
+    for (i=0; i<4; i++)
+	document.getElementById("suit"+i+dirs[0]).classList.remove("btn-info");
+    for (i=0; i<bidlist.length; i++)
+	document.getElementById(bidlist[i]+dirs[0]).classList.remove("btn-info");
+    document.getElementById("pass"+dirs[0]).classList.remove("btn-info");
+}
 
 function bidsuit(s) {
     for (var i=0; i<4; i++)
 	if (i==s)
-	  document.getElementById("suit"+i+dirs[0]).classList.add("btn-primary");
+	  document.getElementById("suit"+i+dirs[0]).classList.add("btn-info");
 	else
-	  document.getElementById("suit"+i+dirs[0]).classList.remove("btn-primary");
-    document.getElementById("pass"+dirs[0]).classList.remove("btn-primary");
+	  document.getElementById("suit"+i+dirs[0]).classList.remove("btn-info");
     mysuit=s;
-    if (mybid>0) bid(mybid,mysuit);
+    if (mybid>=0) {
+	removebtn();
+	bid(mybid,mysuit);
+	mybid=mysuit=-1;
+    }
 }
 
 function prebid(b) {
     for (var i=0; i<bidlist.length; i++)
 	if (bidlist[i]==b)
-	  document.getElementById(bidlist[i]+dirs[0]).classList.add("btn-primary");
-	else
-	  document.getElementById(bidlist[i]+dirs[0]).classList.remove("btn-primary");
-    document.getElementById("pass"+dirs[0]).classList.remove("btn-primary");
+	    document.getElementById(bidlist[i]+dirs[0]).classList.add("btn-info");
+    else
+	document.getElementById(bidlist[i]+dirs[0]).classList.remove("btn-info");
+    document.getElementById("pass"+dirs[0]).classList.remove("btn-info");
     mybid=b;
-    if (mysuit>=0) bid(mybid,mysuit);
+    if (mysuit>=0) {
+	removebtn();
+	bid(mybid,mysuit);
+	mybid=mysuit=-1;
+    }
 }
 
 function bidpass() {
-  var i;
-  for (i=0; i<4; i++)
-    document.getElementById("suit"+i+dirs[0]).classList.remove("btn-primary");
-  for (i=0; i<bidlist.length; i++)
-    document.getElementById(bidlist[i]+dirs[0]).classList.remove("btn-primary");
-  document.getElementById("pass"+dirs[0]).classList.add("btn-primary");
-  bid("pass");
+    bid("pass");
+    mybid=mysuit=-1;
 }
 
 function bid(b,s) {
     console.log("attempted bid "+b+" "+s);
-    if ((gameInfo.turn==pos)&&gameInfo.bidding&&((b=="pass")||((gameInfo.bid!="all")&&((b=="all")||(b>gameInfo.bid))))) {
-    	socket.emit("bid", {
-	    name: name,
-	    timestamp : moment().valueOf(),
-	    arg: [b,s]
-	});
-    }
+    socket.emit("bid", {
+	name: name,
+	timestamp : moment().valueOf(),
+	arg: [b,s]
+    });
 }
+
+socket.on("bid", function(message) { // arg should be [bid,suit] where bid = number or "pass"
+    if (process_bid(gameInfo,message)) { // succesful bid: update graphics
+	var name=message.name;
+	var i = gameInfo.playerNames.indexOf(name); // player number
+	drawBid(i);
+	signalTurn();
+    }
+});
+
 
 function play(c) {
     console.log("attempted play "+c);

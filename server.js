@@ -1,3 +1,6 @@
+// complete rewrite: in common.js put all the processing of the commands (play and bid)
+// potential improvement: only broadcast back client who sent can send to itself
+
 // - gameInfo should be objects with methods!!! ridiculous
 // - should timestamps be copied from sender when broadcasting? would make sense
 //   then all messages need to be properly formed (arrays etc)
@@ -178,55 +181,30 @@ io.on("connection", function(socket) {
     socket.on("bid", function(message) { // arg should be [bid,suit] where bid = number or "pass"
 	var name = clientInfo[socket.id].name; // should be same as message.name
 	var room = clientInfo[socket.id].room;
-	if (!gameInfo[room].bidding) return -1; // not bidding
-	var i = gameInfo[room].playerNames.indexOf(name); // player number
-	if (i != gameInfo[room].turn) return -1; // playing out of turn
-	if (((typeof message.arg === "string") && (message.arg.toLowerCase()=="pass"))||((typeof message.arg[0] === "string") && (message.arg[0].toLowerCase()=="pass"))) {
-	    gameInfo[room].lastbids[i]="pass"; // logging bids
-	    gameInfo[room].bidpasses++;
-	    gameInfo[room].turn=(gameInfo[room].turn+1)%4;
-	    io.in(room).emit("message", {
-		name: "Broadcast",
-		text: name+" passes"+"<br/>"
-		    +gameInfo[room].playerNames[gameInfo[room].turn]+"'s turn",
-		timestamp: moment().valueOf()
-	    });
+	if (common.process_bid(gameInfo[room],message)) {
+	    io.in(room).emit("bid", message);
 	    if (gameInfo[room].bidpasses==4) { // nobody bid
 		io.in(room).emit("message", {
 		    name: "Broadcast",
 		    text: "Everyone passed",
 		    timestamp: moment().valueOf()
 		});
-		gameInfo[room].deck=gameCards[room][0].concat(gameCards[room][1],gameCards[room][2],gameCards[room][3]); // reform the deck
-	      startRound(room);
-	      return;
-	    } else if ((gameInfo[room].bidpasses==3)&&(gameInfo[room].bidplayer>=0)) {
-	      io.in(room).emit("message", {
-		  name: "Broadcast",
-		  text: "Bid is "+gameInfo[room].bid+" "+common.suitshtml[gameInfo[room].trump]+" ("+gameInfo[room].playerNames[gameInfo[room].bidplayer]+"), game starts",
-		  timestamp: moment().valueOf()
-	      });
-		gameInfo[room].bidding=false;
-		gameInfo[room].playing=true;
-		gameInfo[room].turn=gameInfo[room].startingPlayer;
+		gameInfo.deck=gameCards[room][0].concat(gameCards[room][1],gameCards[room][2],gameCards[room][3]); // reform the deck
+		startRound(room);
 	    }
-	} else {
-	    if ((message.arg[0]!="all")&&((message.arg[0]<=gameInfo[room].bid)||(gameInfo[room].bid=="all")||(message.arg[0]%10!=0)||(message.arg[0]>160))) return -1; // shouldn't happen
-	    gameInfo[room].lastbids[i]=message.arg; // logging bids
-	    gameInfo[room].bid=message.arg[0];
-	    gameInfo[room].trump= typeof message.arg[1] === "string" ? common.suitshtml0.indexOf(message.arg[1]) : message.arg[1];
-	    gameInfo[room].bidplayer = gameInfo[room].turn;
-	    gameInfo[room].bidpasses=0;
-	    gameInfo[room].turn=(gameInfo[room].turn+1)%4;
-	    io.in(room).emit("message", {
-		name: "Broadcast",
-		text: name+" bids "+gameInfo[room].bid+" "+common.suitshtml[gameInfo[room].trump]+"<br/>"
-		    +gameInfo[room].playerNames[gameInfo[room].turn]+"'s turn",
-		timestamp: moment().valueOf()
-	    });
+	    else {
+		var msg;
+		if (((typeof message.arg === "string") && (message.arg.toLowerCase()=="pass"))||((typeof message.arg[0] === "string") && (message.arg[0].toLowerCase()=="pass")))
+		    msg=" passes<br/>"; else msg=" bids "+gameInfo[room].bid+" "+common.suitshtml[gameInfo[room].trump]+"<br/>";
+		if (gameInfo[room].playing) msg+="Game starts<br/>";
+		io.in(room).emit("message", {
+		    name: "Broadcast",
+		    text: name + msg
+			+gameInfo[room].playerNames[gameInfo[room].turn]+"'s turn",
+		    timestamp: moment().valueOf()
+		});
+	    }
 	}
-	io.in(room).emit("gameInfo",gameInfo[room]);// resend all the info; is that a bit much?
-	
     });
 
     socket.on("play", function(message) { //	
