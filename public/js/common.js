@@ -101,6 +101,7 @@ function process_play(gameInfo,hand,message) { // if hand is null, means someone
     }
     gameInfo.numcards[i]--;
     gameInfo.playedCards[i]=j;
+    gameInfo.lastTrick=null; // only used in case of trick see below
 
     // process the actual play
     if (gameInfo.firstplayedCard<0) { // first player determines suit
@@ -125,6 +126,7 @@ function process_play(gameInfo,hand,message) { // if hand is null, means someone
 	for (var ii=0; ii<4; ii++)
 	    gameInfo.tricks[im].push(gameInfo.playedCards[ii]);
 	// clean up
+	gameInfo.lastTrick=gameInfo.playedCards; // ... but keep a copy for clients
 	gameInfo.playedCards=[-1,-1,-1,-1];
 	gameInfo.firstplayedCard=-1;
 	// is it last round?
@@ -181,26 +183,9 @@ function process_play(gameInfo,hand,message) { // if hand is null, means someone
 //	    setTimeout(startRound,5000,room);
 //	    return;
 	}
-/*	io.in(room).emit("message", {
-	    name: "Broadcast",
-	    text: name+" plays "+common.cardshtml[j]+"<br/>"
-		+gameInfo.playerNames[im]+" wins, his turn",
-	    timestamp: moment().valueOf()
-	});
-	setTimeout(function(room) {	io.in(room).emit("gameInfo",gameInfo); },2000,room); // still not quite right
-	return;
-*/
     }
     else gameInfo.turn=(gameInfo.turn+1)%4;
-    // wrap up
-/*    io.in(room).emit("message", {
-	name: "Broadcast",
-	text: name+" plays "+common.cardshtml[j]+"<br/>"
-	    +gameInfo.playerNames[gameInfo.turn]+"'s turn",
-	timestamp: moment().valueOf()
-    });
-    io.in(room).emit("gameInfo",gameInfo);// resend all the info; is that a bit much?
-*/
+
     return true;
 }
 

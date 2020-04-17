@@ -1,10 +1,8 @@
+// - trump in corner lost
+//
 // - the welcome message is weirdly split in 2 places
 // - really, the card should move from hand to middle. have static placeholders
-// - right now the typed commands do not update graphics <---- ???????
-//   only problem with play()
-// - related issue, when one plays too quickly after winning trick, moving card changes
 //
-// - backs of cards should have the same color
 // - one should be able to reorder cards
 // - lower res versions of cards
 // - timeout on "typing..." not working
@@ -178,21 +176,23 @@ function redrawTricks() {
 }
 */
 
+function drawPlayedCard(i) {
+    var k=(i+4-pos)%4; // position relative to me
+    // the played cards
+    //	if ((oldgameInfo===null)||(gameInfo.playedCards[i]!==oldgameInfo.playedCards[i]))
+    updatePic(document.getElementById(dirs[k]+"P"), // the played area
+	      gameInfo.playedCards[i]>=0 ? prefix+"card"+gameInfo.playedCards[i]+".png"
+	      : prefix+"cardholder.png");
+}
+
 function drawPlayedCards() {
     for (var i=0; i<4; i++)
-    {
-	var k=(i+4-pos)%4; // position relative to me
-	// the played cards
-//	if ((oldgameInfo===null)||(gameInfo.playedCards[i]!==oldgameInfo.playedCards[i]))
-	updatePic(document.getElementById(dirs[k]+"P"), // the played area
-		  gameInfo.playedCards[i]>=0 ? prefix+"card"+gameInfo.playedCards[i]+".png"
-		  : prefix+"cardholder.png");
-    }
+	drawPlayedCard(i);
 }
 
 function drawCards() {
     drawHandCards();
-    if (!animation) drawTricks();
+    drawTricks();
     
     // played cards if applicable
     document.getElementById("playedcards").hidden=!gameInfo.playing;
@@ -218,9 +218,11 @@ function drawBid(j) {
 }
 
 function drawBids() {
-    for (var i=0; i<4; i++)
+    var i;
+    for (i=0; i<4; i++)
 	document.getElementById("bidding"+dirs[i]).hidden=!gameInfo.bidding;
-    for (var j=0; j<4; j++) drawBid(j);
+    if (gameInfo.bidding)
+	for (i=0; i<4; i++) drawBid(i);
 }
 
 function signalTurn() {
@@ -235,7 +237,7 @@ function signalTurn() {
 
     if (gameInfo.turn==pos) {
 	if (gameInfo.playing)
-	    if (auto) setTimeout(autoplay,500); else showAllowed();
+	    if (auto) setTimeout(autoplay,gameInfo.firstplayedCard<0 ? 1500 : 500); else showAllowed(); // first card played slower
 	else if (gameInfo.bidding)
 	    if (auto) setTimeout(autobid,500); else {
 	      for (i=0; i<4; i++)
@@ -273,7 +275,7 @@ socket.on("gameInfo", function(gameInfo1) {
     document.getElementById("score1").innerHTML=gameInfo.scores[0];
     document.getElementById("score2").innerHTML=gameInfo.scores[1];
 
-    // fix for annoying lack of animation problem
+    // fix for annoying lack of animation problem TEMP?
     if ((!gameInfo.playing)&&animation) {
 	animation=false;
 	document.getElementById("playedcards").classList.remove("trick","N","E","S","W");	
@@ -302,22 +304,7 @@ socket.on("gameInfo", function(gameInfo1) {
 
     drawCards();
 
-    if (gameInfo.bidding) drawBids();
-
-    // TODO: REMOVE
-    if (gameInfo.playing&&(gameInfo.playedCards.indexOf(-1)<0)) { // everyone has played
-	if (animation) document.getElementById("playedcards").classList.remove("trick","N","E","S","W"); // fix for annoying lack of animation problem issue
-	document.getElementById("playedcards").addEventListener("transitionend", function() {
-	    animation=false;
-	    drawPlayedCards();
-	    drawTricks();
-	    this.classList.remove("trick","N","E","S","W");
-	});
-	animation=true;
-	document.getElementById("playedcards").classList.add("trick",dirs[(gameInfo.turn+4-pos)%4]);
-	return;
-    }
-    //
+    drawBids();
 
     signalTurn();
 });
@@ -352,20 +339,6 @@ socket.on("hand", function(h) {
     autoeval=[];
 });
 
-/*
-socket.on("trick", function(winner) {
-    document.getElementById("playedcards").addEventListener("transitionend", function() {
-	this.classList.remove("trick","N","E","S","W");
-	animation=false;
-	oldgameInfo=null;
-	drawCards();
-    });
-    // fix for annoying lack of animation problem
-    if (animation) document.getElementById("playedcards").classList.remove("trick","N","E","S","W");
-    animation=true;
-    document.getElementById("playedcards").classList.add("trick",dirs[(winner+4-pos)%4]);
-});
-*/
 
 // other user messaged
 socket.on("message", function(message) {
@@ -455,6 +428,11 @@ socket.on("bid", function(message) { // arg should be [bid,suit] where bid = num
 	var name=message.name;
 	var i = gameInfo.playerNames.indexOf(name); // player number
 	drawBid(i);
+	if (gameInfo.playing) { // playing started: update visibility
+	    for (var i=0; i<4; i++)
+		document.getElementById("bidding"+dirs[i]).hidden=true;
+	    document.getElementById("playedcards").hidden=false;
+	}
 	signalTurn();
     }
 });
@@ -462,12 +440,59 @@ socket.on("bid", function(message) { // arg should be [bid,suit] where bid = num
 
 function play(c) {
     console.log("attempted play "+c);
-    if (animation) {
-	animation=false;
-	drawPlayedCards();
-	drawTricks();
-	document.getElementById("playedcards").classList.remove("trick","N","E","S","W");
+    socket.emit("play", {
+	name: name,
+	timestamp : moment().valueOf(),
+	arg: c
+    });
+}
+
+socket.on("play", function(message) {
+    var name=message.name;
+    var i = gameInfo.playerNames.indexOf(name); // player number
+    if (process_play(gameInfo, i==pos ? hand : null, message)) { // succesful play: update graphics
+	if (i==pos) {
+	    // update pictures
+	    for (var j=0; j<8; j++)
+	    {
+		var cardel=document.getElementById(dirs[0]+j);
+		if (cardel.alt==message.arg)
+		{
+		    cardel.src="images/cards/cardholder.png";
+		    cardel.alt=-1;
+		}
+		cardel.classList.remove("active");
+	    }
+	} else {
+	    // TODO
+	}
+	// played card TODO animation
+	if (gameInfo.lastTrick!==null) { // trick animation
+	    gameInfo.playedCards[i]=gameInfo.lastTrick[i]; // eww
+	    drawPlayedCard(i);
+	    gameInfo.playedCards[i]=-1; // eww
+	    if (animation) document.getElementById("playedcards").classList.remove("trick","N","E","S","W"); // fix for annoying lack of animation problem issue TEMP?
+	    document.getElementById("playedcards").addEventListener("transitionend", function() {
+		animation=false;
+		drawPlayedCards();
+		drawTricks();
+		this.classList.remove("trick","N","E","S","W");
+	    });
+	    animation=true;
+	    document.getElementById("playedcards").classList.add("trick",dirs[(gameInfo.turn+4-pos)%4]);
+	}
+	else drawPlayedCard(i);
+
+	if (gameInfo.bidding) { // back to bidding: update visibility
+	    for (var i=0; i<4; i++)
+		document.getElementById("bidding"+dirs[i]).hidden=false;
+	    document.getElementById("playedcards").hidden=true;
+	}
+	signalTurn();
     }
+});
+
+
     /*
     if ((gameInfo.turn==pos)&&gameInfo.playing&&validCard(gameInfo.playedCards,gameInfo.firstplayedCard,hand,gameInfo.trump,gameInfo.turn,c)) {
 	gameInfo.turn=(pos+1)%4; // a bit early; may have to undo
@@ -492,22 +517,7 @@ function play(c) {
 	cardel.src=prefix+"card"+c+".png";
 */
 	
-	socket.emit("play", {
-	    name: name,
-	    timestamp : moment().valueOf(),
-	    arg: c
-	});
-    // }
-}
 
-socket.on("play", function(message) {
-    var name=message.name;
-    var i = gameInfo.playerNames.indexOf(name); // player number
-    if (process_play(gameInfo, i==pos ? hand : null, message)) { // succesful play: update graphics
-	drawCards(); // TEMP
-	signalTurn();
-    }
-});
 
 
 // lame conversion

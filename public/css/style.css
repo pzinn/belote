@@ -165,9 +165,9 @@ ul.list-group {
 
 #playedcards.trick {
     transform: translate(-50%,-50%) scale(0.1);
-    transition-duration: 1.3s;
+    transition-duration: 1s;
     transition-timing-function: ease-in;
-    transition-delay: 1.0s;
+    transition-delay: 0.2s;
 }
 
 #playedcards.W {
