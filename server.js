@@ -47,7 +47,7 @@ function sendCurrentUsers(socket) { // loading current users
 
     socket.emit("message", {
 	name: "System",
-	text: "Current Users : " + users.join(', '),
+	arg: "Current Users : " + users.join(', '),
 	timestamp: moment().valueOf()
     });
 
@@ -74,7 +74,7 @@ io.on("connection", function(socket) {
 	    socket.leave(userdata.room); // leave the room
 	    //broadcast leave room to only members of same room
 	    socket.broadcast.to(userdata.room).emit("message", {
-		text: userdata.name + " has left",
+		arg: userdata.name + " has left",
 		name: "Broadcast",
 		timestamp: moment().valueOf()
 	    });
@@ -93,7 +93,7 @@ io.on("connection", function(socket) {
 	//broadcast new user joined room
 	socket.broadcast.to(room).emit("message", {
 	    name: "Broadcast",
-	    text: req.name + ' has joined',
+	    arg: req.name + ' has joined',
 	    timestamp: moment().valueOf()
 	});
 	if (gameInfo[room]!==undefined) { // game already started
@@ -104,7 +104,7 @@ io.on("connection", function(socket) {
 	    else {		
 		socket.emit("message", {
 		    name: "System",
-		    text: "Game already started. You're a spectator",
+		    arg: "Game already started. You're a spectator",
 		    timestamp: moment().valueOf()
 		});
 	    }
@@ -126,18 +126,15 @@ io.on("connection", function(socket) {
     });
 
     socket.emit("message", {
-	text: help.welcomeText,
+	arg: help.welcomeText,
 	timestamp: moment().valueOf(),
 	name: "System"
     });
 
     // listen for client message
     socket.on("message", function(message) {
-	console.log("Message Received : " + message.text);
-//	message.timestamp = moment().valueOf();
-	//broadcast to all users except for sender
-	// now message should be only sent to users who are in same room
-	socket.broadcast.to(clientInfo[socket.id].room).emit("message", message);
+	console.log("Message Received : " + message.arg);
+	io.in(clientInfo[socket.id].room).emit("message", message);
     });
 
     socket.on("users", function() {
@@ -146,7 +143,7 @@ io.on("connection", function(socket) {
 
     socket.on("help", function() {
 	socket.emit("message", {
-	    text: help.helpText,
+	    arg: help.helpText,
 	    timestamp: moment().valueOf(),
 	    name: "System"
 	});
@@ -157,7 +154,7 @@ io.on("connection", function(socket) {
 	if (gameInfo[room]!==undefined) { // game already started
 		socket.emit("message", {
 		    name: "System",
-		    text: "Game already started.",
+		    arg: "Game already started.",
 		    timestamp: moment().valueOf()
 		});
 	} else {
@@ -166,7 +163,7 @@ io.on("connection", function(socket) {
 	    var room=clientInfo[socket.id].room;
 	    io.in(room).emit("message", {
 		name: "Broadcast",
-		text: clientInfo[socket.id].name+" ready: "+clientInfo[socket.id].ready,
+		arg: clientInfo[socket.id].name+" ready: "+clientInfo[socket.id].ready,
 		timestamp: moment().valueOf()
 	    });
 	}
@@ -187,7 +184,7 @@ io.on("connection", function(socket) {
 	    if (gameInfo[room].bidPasses==4) { // nobody bid
 		io.in(room).emit("message", {
 		    name: "Broadcast",
-		    text: "Everyone passed",
+		    arg: "Everyone passed",
 		    timestamp: moment().valueOf()
 		});
 		gameInfo[room].deck=gameCards[room][0].concat(gameCards[room][1],gameCards[room][2],gameCards[room][3]); // reform the deck
@@ -202,7 +199,7 @@ io.on("connection", function(socket) {
 		if (gameInfo[room].playing) msg+="Game starts<br/>";
 		io.in(room).emit("message", {
 		    name: "Broadcast",
-		    text: name + msg
+		    arg: name + msg
 			+gameInfo[room].playerNames[gameInfo[room].turn]+"'s turn",
 		    timestamp: moment().valueOf()
 		});
@@ -219,7 +216,7 @@ io.on("connection", function(socket) {
 	    // lots of messaging to do
 	    io.in(room).emit("message", {
 		name: "Broadcast",
-		text: name+" plays "+common.cardshtml[message.arg]+"<br/>" // what about old syntax? TODO
+		arg: name+" plays "+common.cardshtml[message.arg]+"<br/>" // what about old syntax? TODO
 		    +gameInfo[room].playerNames[gameInfo[room].turn]+"'s turn",
 		timestamp: moment().valueOf()
 	    });
@@ -231,7 +228,7 @@ io.on("connection", function(socket) {
 		    +"Total "+gameInfo[room].playerNames[1]+"/"+gameInfo[room].playerNames[3]+": "+gameInfo[room].totalScores[1]+" pts";
 		io.in(room).emit("message", {
 		    name: "Broadcast",
-		    text: msg,
+		    arg: msg,
 		    timestamp: moment().valueOf()
 		});
 		setTimeout(startRound,5000,room);
@@ -263,7 +260,7 @@ function startGame(room) {
     gameInfo[room].playerNames=players.map(p=>clientInfo[p].name); // names shouldn't change (not very secure...)
     io.in(room).emit("message", {
 	name: "Broadcast",
-	text: "Game starting! "+gameInfo[room].playerNames.join(),
+	arg: "Game starting! "+gameInfo[room].playerNames.join(),
 	timestamp: moment().valueOf()
     });
     gameInfo[room].deck=[...Array(32).keys()];
@@ -327,7 +324,7 @@ function startRound(room) {
 
     io.in(room).emit("message", {
 	name: "Broadcast",
-	text: "Round starting!<br/>"
+	arg: "Round starting!<br/>"
 	    +gameInfo[room].playerNames[gameInfo[room].turn]+"'s turn",
 	timestamp: moment().valueOf()
     });

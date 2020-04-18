@@ -111,12 +111,12 @@ function unshowAllowed() {
 
 
 // print message
-function insertMessage(message,extraClass) {
+function insertMessage(message) {
     var messages = document.getElementById("messages");
     var messageitem = document.createElement("li");   
     var momentTimestamp = moment.utc(message.timestamp).local().format("h:mm a");
     messageitem.className="list-group-item";
-    messageitem.innerHTML="<span class='message-stamp'>" + message.name + " " + momentTimestamp + "</span><span class='message "+extraClass+"'>" + message.text +"</span>";
+    messageitem.innerHTML="<span class='message-stamp'>" + message.name + " " + momentTimestamp + "</span><span class='message'>" + message.arg +"</span>";
     messages.appendChild(messageitem);
     // handle autoscroll
     messages.scrollTop=messages.scrollHeight;
@@ -277,26 +277,26 @@ socket.on("gameInfo", function(gameInfo1) {
 
     displayScores();
     
-    // fix for annoying lack of animation problem TEMP?
+    // fix for annoying lack of animation problem
     if ((!gameInfo.playing)&&trickAnimation) {
 	trickAnimation=false;
 	document.getElementById("playedcards").classList.remove("trick","N","E","S","W");	
     }
     
     document.getElementById("ready").disabled=true;
-    document.getElementById("ready").checked=true;
     // determine my number -- if I'm a player
     pos=gameInfo.playerNames.indexOf(name);
+    document.getElementById("ready").checked= (pos>=0);
 	
     var message;
     if (gameInfo.playing) message = {
-	text: "Trump is "+suitshtml[gameInfo.trump]+"<br/>"
+	arg: "Trump is "+suitshtml[gameInfo.trump]+"<br/>"
 	    +gameInfo.playerNames[gameInfo.turn]+"'s turn",
 	name: "System",
 	timestamp : moment().valueOf()
     };
     else if (gameInfo.bidding) message = {
-	text: "Current bid is "+(gameInfo.bidPlayer>=0 ? gameInfo.bid+" "+suitshtml[gameInfo.trump]+" ("+gameInfo.playerNames[gameInfo.bidPlayer]+")" : "none")
+	arg: "Current bid is "+(gameInfo.bidPlayer>=0 ? gameInfo.bid+" "+suitshtml[gameInfo.trump]+" ("+gameInfo.playerNames[gameInfo.bidPlayer]+")" : "none")
 	    +"<br/>"+gameInfo.playerNames[gameInfo.turn]+"'s turn",
 	name: "System",
 	timestamp : moment().valueOf()
@@ -314,7 +314,7 @@ socket.on("gameInfo", function(gameInfo1) {
 socket.on("hand", function(h) {
     hand=h;
     var message = {
-	text: "Your hand is "+hand.map(i=>"<a onclick='play("+i+")'>"+cardshtml[i]+"</a>").join(),
+	arg: "Your hand is "+hand.map(i=>"<a onclick='play("+i+")'>"+cardshtml[i]+"</a>").join(),
 	name: "System",
 	timestamp : moment().valueOf()
     };
@@ -339,34 +339,6 @@ socket.on("hand", function(h) {
     }
     // for autoplay
     autoeval=[];
-});
-
-
-// other user messaged
-socket.on("message", function(message) {
-    console.log("New Message !");
-    console.log(message.text);
-    // insert messages in container
-    insertMessage(message,"");
-
-    // try notify , only when user has not open chat view
-    if (document[hidden]) {
-	notifyMe(message);
-	// also notify server that user has not seen messgae
-	var umsg = {
-	    text: name + " has not seen message",
-	    read: false
-	};
-	socket.emit("userSeen", umsg);
-    } else {
-	// notify  server that user has seen message
-	var umsg = {
-	    text: name + " has seen message",
-	    read: true,
-	    user: name
-	};
-	socket.emit("userSeen", umsg);
-    }
 });
 
 function ready(flag) {
@@ -496,14 +468,13 @@ socket.on("play", function(message) {
 	    gameInfo.playedCards[i]=gameInfo.lastTrick[i]; // eww
 	    drawPlayedCard(i);
 	    gameInfo.playedCards[i]=-1; // eww
-	    if (trickAnimation) document.getElementById("playedcards").classList.remove("trick","N","E","S","W"); // fix for annoying lack of animation problem issue TEMP?
+	    if (trickAnimation) document.getElementById("playedcards").classList.remove("trick","N","E","S","W"); // fix for annoying lack of animation problem issue
 	    setTimeout( function() {
 //	    document.getElementById("playedcards").addEventListener("transitionend", function() {
 		trickAnimation=false;
 		drawPlayedCards();
 		drawTricks();
 		document.getElementById("playedcards").classList.remove("trick","N","E","S","W");
-//		this.classList.remove("trick","N","E","S","W");
 	    },2000);
 	    trickAnimation=true;
 	    document.getElementById("playedcards").classList.add("trick",dirs[(gameInfo.turn+4-pos)%4]);
@@ -531,6 +502,33 @@ socket.on("play", function(message) {
 	  }
 	*/
 	signalTurn();
+    }
+});
+
+
+socket.on("message", function(message) {
+    console.log("New Message !");
+    console.log(message.arg);
+    // insert messages in container
+    insertMessage(message);
+
+    // try notify , only when user has not open chat view
+    if (document[hidden]) {
+	notifyMe(message);
+	// also notify server that user has not seen messgae
+	var umsg = {
+	    arg: name + " has not seen message",
+	    read: false
+	};
+	socket.emit("userSeen", umsg);
+    } else {
+	// notify  server that user has seen message
+	var umsg = {
+	    arg: name + " has seen message",
+	    read: true,
+	    user: name
+	};
+	socket.emit("userSeen", umsg);
     }
 });
 
@@ -568,9 +566,10 @@ form.addEventListener("submit", function(event) {
     if (msg === "") return -1; //empty messages cannot be sent
 
     var emitType="message";
-    var arg="";
+    var arg=msg;
     if (msg[0] === "@") // special way of emitting from chat: first word is command
     {
+	insertMessage({name: name, timestamp : moment().valueOf(), arg:arg}); // @ commands are echo'ed
 	arg=msg.split(" ");
 	emitType=arg[0].substring(1);
 	if (arg.length==1) arg="";
@@ -578,13 +577,11 @@ form.addEventListener("submit", function(event) {
 	else arg.shift();
     }
     var message = {
-	text: msg,
 	name: name,
+	arg: arg,
 	timestamp : moment().valueOf(),
-	arg: arg
     };
     socket.emit(emitType, message);
-    insertMessage(message,"mine"); // could just let the server emit back instead
     message1.value="";
 });
 
@@ -599,7 +596,7 @@ function timeoutFunction() {
     //console.log("stopped typing");
     // socket.emit("typing", false);
     socket.emit('typing', {
-	text: "" //name + " stopped typing"
+	arg: "" //name + " stopped typing"
     });
 }
 // if key is pressed typing message is seen else auto after 2 sec typing false message is send
@@ -610,7 +607,7 @@ document.getElementById("messagebox").onkeyup= function() {
     //console.log("typing typing ....");
     //socket.emit('typing', 'typing...');
     socket.emit('typing', {
-	text: name + " is typing ..."
+	arg: name + " is typing ..."
     });
     clearTimeout(timeout);
     timeout = setTimeout(timeoutFunction, 1000);
@@ -634,8 +631,8 @@ if (typeof document.hidden !== "undefined") { // Opera 12.10 and Firefox 18 and 
 
 
 //listening for typing  event
-socket.on("typing", function(message) { //console.log(message.text);
-    document.getElementById("typing").innerHTML=message.text;    
+socket.on("typing", function(message) { //console.log(message.arg);
+    document.getElementById("typing").innerHTML=message.arg;    
 });
 
 socket.on("userSeen", function(msg) {
@@ -677,7 +674,7 @@ function notifyMe(msg) {
 	    this.close();
 	    // assume user would see message so broadcast userSeen event
 	    var umsg = {
-		text: name + " has seen message",
+		arg: name + " has seen message",
 		read: true,
 		user: name
 	    };
@@ -698,7 +695,7 @@ function notifyMe(msg) {
 		    event.preventDefault();
 		    this.close();
 		    var umsg = {
-			text: name + " has seen message",
+			arg: name + " has seen message",
 			read: true,
 			user: name
 		    };
