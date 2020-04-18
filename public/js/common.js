@@ -66,24 +66,38 @@ function process_bid(gameInfo,message) {
     var name=message.name;
     var i = gameInfo.playerNames.indexOf(name); // player number
     if (i != gameInfo.turn) return false; // bidding out of turn
-    if (((typeof message.arg === "string") && (message.arg.toLowerCase()=="pass"))||((typeof message.arg[0] === "string") && (message.arg[0].toLowerCase()=="pass"))) {
-	gameInfo.lastbids[i]="pass"; // logging bids
-	gameInfo.bidpasses++;
-	if ((gameInfo.bidpasses==3)&&(gameInfo.bidplayer>=0)) {
+    // bit of a hack: fixing the message
+    if (typeof message.arg === "string") message.arg=message.arg.toLowerCase();
+    if (typeof message.arg[0] === "string")
+	if ((message.arg[0].toLowerCase()=="pass")||(message.arg[0].toLowerCase()=="coinche")) message.arg=message.arg[0].toLowerCase();
+    else message.arg[0]=+message.arg[0];
+    //
+    if (message.arg == "pass")
+    {
+	gameInfo.bidPasses++;
+	if ((gameInfo.bidPasses==3)&&(gameInfo.bidPlayer>=0)) {
 	    gameInfo.bidding=false;
 	    gameInfo.playing=true;
 	    gameInfo.turn=gameInfo.startingPlayer;
 	}
-    } else {
+    } else if (message.arg == "coinche") {
+	if (gameInfo.coinche)
+	    if (gameInfo.surcoinche) return false; else gameInfo.surcoinche=true;
+	else gameInfo.coinche=true;
+    }
+    else {
+	if (gameInfo.coinche) return false; // can't bid after coinche
 	if ((message.arg[0]!="all")&&((message.arg[0]<=gameInfo.bid)||(gameInfo.bid=="all")||(message.arg[0]%10!=0)||(message.arg[0]>160))) return false; // shouldn't happen
-	gameInfo.bid=+message.arg[0];
+	gameInfo.bid=message.arg[0];
 	var k=-1;
 	if (typeof message.arg[1] === "string") k=suitshtml0.indexOf(message.arg[1]);
-	gameInfo.trump = k<0 ? +message.arg[1] : k;
-	gameInfo.bidplayer = i;
-	gameInfo.lastbids[i]=[gameInfo.bid,gameInfo.trump]; // logging bids
-	gameInfo.bidpasses=0;
+	if (k<0) k=+message.arg[1];
+	if ((k<0)||(k>3)) return false;
+	gameInfo.trump = k;
+	gameInfo.bidPlayer = i;
+	gameInfo.bidPasses=0;
     }
+    gameInfo.lastbids[i]=message.arg; // logging bids
     gameInfo.turn=(gameInfo.turn+1)%4;
     return true;
 }
@@ -141,10 +155,11 @@ function process_play(gameInfo,hand,message) { // if hand is null, means someone
 		    gameInfo.roundScores[ii%2] += suit(c)==gameInfo.trump ? trumpvalue[c%8] : nontrumpvalue[c%8];
 		}
 	    // scorekeeping
-	    gameInfo.bidSuccess= ((gameInfo.roundScores[gameInfo.bidplayer%2]>81)
-			 &&(((gameInfo.bid=="all")&&(gameInfo.tricks[gameInfo.bidplayer].length+gameInfo.tricks[(gameInfo.bidplayer+2)%4].length==8))
-			    ||((gameInfo.bid!="all")&&(gameInfo.roundScores[gameInfo.bidplayer%2]>gameInfo.bid))));
-	    gameInfo.scores[(gameInfo.bidplayer+(gameInfo.bidSucesss?0:1))%2]+=gameInfo.bid == "all" ? 250 : gameInfo.bid;
+	    gameInfo.bidSuccess= ((gameInfo.roundScores[gameInfo.bidPlayer%2]>81)
+			 &&(((gameInfo.bid=="all")&&(gameInfo.tricks[gameInfo.bidPlayer].length+gameInfo.tricks[(gameInfo.bidPlayer+2)%4].length==8))
+			    ||((gameInfo.bid!="all")&&(gameInfo.roundScores[gameInfo.bidPlayer%2]>gameInfo.bid))));
+	    gameInfo.scores[(gameInfo.bidPlayer+(gameInfo.bidSucesss?0:1))%2] += (gameInfo.bid == "all" ? 250 : gameInfo.bid)
+		* (gameInfo.coinche ? gameInfo.surcoinche? 4 : 2 : 1);
 	    /*
 	      for (var ii=0; ii<2; ii++)
 	      gameInfo.scores[ii]+=10*Math.round(gameInfo.roundScores[ii]/10); // variation of the rules

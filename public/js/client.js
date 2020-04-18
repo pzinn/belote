@@ -1,5 +1,5 @@
+// - quench missing
 // - the welcome message is weirdly split in 2 places
-// - really, the card should move from hand to middle. have static placeholders
 //
 // - one should be able to reorder cards
 // - lower res versions of cards
@@ -75,6 +75,7 @@ function autoplay() {
 var autoeval=[];
 
 function autobid() {
+    if (gameInfo.coinche) bid("pass");
     var b=+gameInfo.bid;
     var i,j;
     if ((b=="all")||(b==160)) { bid("pass"); return; }
@@ -209,19 +210,20 @@ function signalTurn() {
 	    if (auto) setTimeout(autoplay,gameInfo.firstplayedCard<0 ? 1500 : 500); else showAllowed(); // first card played slower
 	else if (gameInfo.bidding)
 	    if (auto) setTimeout(autobid,500); else {
-	      for (i=0; i<4; i++)
+		for (i=0; i<4; i++)
 		{
-		  document.getElementById("suit"+i+dirs[0]).classList.remove("btn-primary");
-		  document.getElementById("suit"+i+dirs[0]).disabled=false;
+		    document.getElementById("suit"+i+dirs[0]).classList.remove("btn-primary");
+		    document.getElementById("suit"+i+dirs[0]).disabled=gameInfo.coinche;
 		}
-	      for (i=0; i<bidlist.length; i++)
+		for (i=0; i<bidlist.length; i++)
 		{
-		  document.getElementById(bidlist[i]+dirs[0]).classList.remove("btn-primary");
-		  document.getElementById(bidlist[i]+dirs[0]).disabled=false;
+		    document.getElementById(bidlist[i]+dirs[0]).classList.remove("btn-primary");
+		    document.getElementById(bidlist[i]+dirs[0]).disabled=gameInfo.coinche;
 		}
-	      document.getElementById("pass"+dirs[0]).classList.remove("btn-primary");
-	      document.getElementById("pass"+dirs[0]).disabled=false;
-	      mybid=mysuit=-1;
+		document.getElementById("pass"+dirs[0]).classList.remove("btn-primary");
+		document.getElementById("pass"+dirs[0]).disabled=false;
+		document.getElementById("coinche"+dirs[0]).disabled=(gameInfo.bidPlayer<0)||(((gameInfo.bidPlayer%2 == pos%2)||gameInfo.coinche)&&((gameInfo.bidPlayer%2 != pos%2)||!gameInfo.coinche||gameInfo.surcoinche));
+		mybid=mysuit=-1;
 	    }
     } else if (gameInfo.bidding) {
 	      var i;
@@ -230,20 +232,36 @@ function signalTurn() {
 	      for (i=0; i<bidlist.length; i++)
 		  document.getElementById(bidlist[i]+dirs[0]).disabled=true;
 	      document.getElementById("pass"+dirs[0]).disabled=true;
+	      document.getElementById("coinche"+dirs[0]).disabled=true;
     }
+}
+
+function displayBid() {
+    var bid="";
+    if (gameInfo.playing) {
+	bid+="<div style='font-size:150%'>"+gameInfo.bid +" "+suitshtml[gameInfo.trump]+"</div>";
+	if (gameInfo.surcoinche) bid+="surcoinche";
+	else if (gameInfo.coinche) bid+="coinche";
+    }
+    document.getElementById("bid").innerHTML= bid;
+}
+
+function displayScores() {
+    // TEMP need better scoring
+    document.getElementById("scoresname1").innerHTML=gameInfo.playerNames[0]+"<br/>"+gameInfo.playerNames[2];
+    document.getElementById("scoresname2").innerHTML=gameInfo.playerNames[1]+"<br/>"+gameInfo.playerNames[3];
+    document.getElementById("score1").innerHTML=gameInfo.scores[0];
+    document.getElementById("score2").innerHTML=gameInfo.scores[1];
 }
 
 socket.on("gameInfo", function(gameInfo1) {
     var i;
     gameInfo=gameInfo1;
 
-    document.getElementById("bid").innerHTML= gameInfo.playing ? gameInfo.bid +" "+suitshtml[gameInfo.trump] : "";
-    // TEMP need better scoring
-    document.getElementById("scoresname1").innerHTML=gameInfo.playerNames[0]+"<br/>"+gameInfo.playerNames[2];
-    document.getElementById("scoresname2").innerHTML=gameInfo.playerNames[1]+"<br/>"+gameInfo.playerNames[3];
-    document.getElementById("score1").innerHTML=gameInfo.scores[0];
-    document.getElementById("score2").innerHTML=gameInfo.scores[1];
+    displayBid();
 
+    displayScores();
+    
     // fix for annoying lack of animation problem TEMP?
     if ((!gameInfo.playing)&&trickAnimation) {
 	trickAnimation=false;
@@ -263,7 +281,7 @@ socket.on("gameInfo", function(gameInfo1) {
 	timestamp : moment().valueOf()
     };
     else if (gameInfo.bidding) message = {
-	text: "Current bid is "+(gameInfo.bidplayer>=0 ? gameInfo.bid+" "+suitshtml[gameInfo.trump]+" ("+gameInfo.playerNames[gameInfo.bidplayer]+")" : "none")
+	text: "Current bid is "+(gameInfo.bidPlayer>=0 ? gameInfo.bid+" "+suitshtml[gameInfo.trump]+" ("+gameInfo.playerNames[gameInfo.bidPlayer]+")" : "none")
 	    +"<br/>"+gameInfo.playerNames[gameInfo.turn]+"'s turn",
 	name: "System",
 	timestamp : moment().valueOf()
@@ -349,6 +367,8 @@ function removebtn() {
     document.getElementById("pass"+dirs[0]).classList.remove("btn-info");
 }
 
+// these functions are crap
+
 function bidsuit(s) {
     for (var i=0; i<4; i++)
 	if (i==s)
@@ -383,6 +403,11 @@ function bidpass() {
     mybid=mysuit=-1;
 }
 
+function bidcoinche() {
+    bid("coinche");
+    mybid=mysuit=-1;
+}    
+
 function bid(b,s) {
     console.log("attempted bid "+b+" "+s);
     socket.emit("bid", {
@@ -401,7 +426,7 @@ socket.on("bid", function(message) { // arg should be [bid,suit] where bid = num
 	    for (var i=0; i<4; i++)
 		document.getElementById("bidding"+dirs[i]).hidden=true;
 	    document.getElementById("playedcards").hidden=false;
-	    document.getElementById("bid").innerHTML=gameInfo.bid +" "+suitshtml[gameInfo.trump];
+	    displayBid();
 	}
 	signalTurn();
     }

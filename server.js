@@ -1,9 +1,8 @@
-// complete rewrite: in common.js put all the processing of the commands (play and bid)
-// potential improvement: only broadcast back client who sent can send to itself
+// potential improvement: only broadcast back client who sent can send to itself, cf
+// https://stackoverflow.com/questions/26324169/can-the-socket-io-client-emit-events-locally
 
 // - gameInfo should be objects with methods!!! ridiculous
-// - should timestamps be copied from sender when broadcasting? would make sense
-//   then all messages need to be properly formed (arrays etc)
+// - are all messages properly formatted? (with timestamps etc)
 
 var PORT = process.env.PORT || 3000; // take port from heroku or for loacalhost
 var express = require("express");
@@ -183,7 +182,7 @@ io.on("connection", function(socket) {
 	var room = clientInfo[socket.id].room;
 	if (common.process_bid(gameInfo[room],message)) {
 	    io.in(room).emit("bid", message);
-	    if (gameInfo[room].bidpasses==4) { // nobody bid
+	    if (gameInfo[room].bidPasses==4) { // nobody bid
 		io.in(room).emit("message", {
 		    name: "Broadcast",
 		    text: "Everyone passed",
@@ -194,8 +193,10 @@ io.on("connection", function(socket) {
 	    }
 	    else {
 		var msg;
-		if (((typeof message.arg === "string") && (message.arg.toLowerCase()=="pass"))||((typeof message.arg[0] === "string") && (message.arg[0].toLowerCase()=="pass")))
-		    msg=" passes<br/>"; else msg=" bids "+gameInfo[room].bid+" "+common.suitshtml[gameInfo[room].trump]+"<br/>";
+		if (message.arg=="pass") msg=" passes<br/>";
+		else if (message.arg=="coinche")
+		    if (gameInfo[room].surcoinche) msg=" surcoinches<br/>"; else msg=" coinches<br/>";
+		else msg=" bids "+gameInfo[room].bid+" "+common.suitshtml[gameInfo[room].trump]+"<br/>";
 		if (gameInfo[room].playing) msg+="Game starts<br/>";
 		io.in(room).emit("message", {
 		    name: "Broadcast",
@@ -312,8 +313,9 @@ function startRound(room) {
 
     gameInfo[room].bidding=true;
     gameInfo[room].trump=-1;
-    gameInfo[room].bid=70; gameInfo[room].bidplayer=-1; gameInfo[room].bidpasses=0;
+    gameInfo[room].bid=70; gameInfo[room].bidPlayer=-1; gameInfo[room].bidPasses=0;
     gameInfo[room].lastbids=[null,null,null,null];
+    gameInfo[room].coinche=gameInfo[room].surcoinche=false;
     gameInfo[room].playing=false;
      
     // starting player

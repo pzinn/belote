@@ -78,6 +78,8 @@
 	    <button class="btn btn-default" id="suit3N" disabled="disabled" style="color:black;font-size:200%">&clubs;</button>
 	    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 	    <button class="btn btn-default" id="passN" disabled="disabled" style="font-size:200%">PASS</button>
+	    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	    <button class="btn btn-default" id="coincheN" disabled="disabled">coinche</button>
 	  </div>
 	  <div id="Wname"></div>
 	  <div id="cardareaW">
@@ -115,7 +117,8 @@
 	    <button class="btn btn-default" id="150W" disabled="disabled">150</button><br/>
 	    <button class="btn btn-default" id="160W" disabled="disabled">160</button>
 	    <button class="btn btn-default" id="passW" disabled="disabled" style="float:right;padding:0"><span style="font-size:200%;writing-mode:vertical-rl;text-orientation:upright">PASS</span></button><br/>
-	    <button class="btn btn-default" id="allW" disabled="disabled">all</button>
+	    <button class="btn btn-default" id="allW" disabled="disabled">all</button><br/>
+	    <button class="btn btn-default" id="coincheW" disabled="disabled"><span style="font-size:80%;writing-mode:vertical-rl;text-orientation:upright">coinche</span></button>
 	  </div>
 	  <div id="Ename" id="Ename"></div>
 	  <div id="cardareaE">
@@ -152,8 +155,9 @@
 	    <button class="btn btn-default" id="suit3E" disabled="disabled" style="float:right;color:black;font-size:200%">&clubs;</button><br/>
 	    <button class="btn btn-default" id="150E" disabled="disabled">150</button><br/>
 	    <button class="btn btn-default" id="160E" disabled="disabled">160</button>
-	    <button class="btn btn-default" id="passE" disabled="disabled" style="float:right;padding:0"><span style="font-size:200%;writing-mode:vertical-rl;text-orientation:upright">PASS</span></button><br/>
-	    <button class="btn btn-default" id="allE" disabled="disabled">all</button>
+	    <button class="btn btn-default" id="passE" disabled="disabled" style="float:right;padding:0;font-size:200%"><span style="writing-mode:vertical-rl;text-orientation:upright">PASS</span></button><br/>
+	    <button class="btn btn-default" id="allE" disabled="disabled">all</button><br/>
+	    <button class="btn btn-default" id="coincheE" disabled="disabled"><span style="font-size:80%;writing-mode:vertical-rl;text-orientation:upright">coinche</span></button>
 </div>
 	  <div id="Sname"></div>
 	  <div id="cardareaS">
@@ -183,6 +187,8 @@
 	    <button class="btn btn-default" id="suit3S" onclick="bidsuit(3);" disabled="disabled" style="color:black;font-size:200%">&clubs;</button>
 	    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 	    <button class="btn btn-default" id="passS"  onclick="bidpass();" disabled="disabled" style="font-size:200%">PASS</button>
+	    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	    <button class="btn btn-default" id="coincheS" onclick="bidcoinche();" disabled="disabled">coinche</button>
 	    <br/>
 	    <button class="btn btn-default" id="80S" onclick="prebid(80);" disabled="disabled">80</button>
 	    <button class="btn btn-default" id="90S" onclick="prebid(90);" disabled="disabled">90</button>
