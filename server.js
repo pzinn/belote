@@ -176,6 +176,24 @@ io.on("connection", function(socket) {
 	if (n==4) startGame(room);
     });
 
+    socket.on("partner", function(message) {
+	var room = clientInfo[socket.id].room;
+	if (gameInfo[room]!==undefined) { // game already started
+		socket.emit("message", {
+		    name: "System",
+		    arg: "Game already started.",
+		    timestamp: moment().valueOf()
+		});
+	} else {
+	    clientInfo[socket.id].partner=message.arg;
+	    io.in(room).emit("message", {
+		name: "Broadcast",
+		arg: clientInfo[socket.id].name+" wants to partner with "+message.arg,
+		timestamp: moment().valueOf()
+	    });
+	}
+    });
+
     socket.on("bid", function(message) { // arg should be [bid,suit] where bid = number or "pass"
 	var name = clientInfo[socket.id].name; // should be same as message.name
 	var room = clientInfo[socket.id].room;
@@ -248,15 +266,28 @@ function startGame(room) {
     gameInfo[room]={}; gameCards[room]=new Array(4);
     var people=Object.keys(io.sockets.adapter.rooms[room].sockets);
     var players=[];    // not stored in gameInfo because may change with time (reconnects)
-    var n=0;
-    for (var i=0; i<people.length; i++)
+    var i,j,n=0;
+    for (i=0; i<people.length; i++)
 	if (clientInfo[people[i]].ready) {
 	    n++;
 	    players.push(people[i]);
 	}
     if (n!=4) return -1; // wrong number of players
 
-    // also issue of ordering! TODO
+    // only accept one partner request
+    i=0; var flag=false;
+    for (i=0; (i<4) && !flag; i++)
+	if (typeof clientInfo[players[i]].partner !== "undefined") {
+	    for (j=0; j<4; j++)
+		if ((j!=i)&&(clientInfo[players[j]].name == clientInfo[players[i]].partner)) {
+		    flag=true;
+		    if (j%2!=i%2) {
+			var tmp = players[j];
+			players[j]=players[(i+2)%4];
+			players[(i+2)%4]=tmp;
+		    }
+		}
+	}
 
     gameInfo[room].playerNames=players.map(p=>clientInfo[p].name); // names shouldn't change (not very secure...)
     io.in(room).emit("message", {

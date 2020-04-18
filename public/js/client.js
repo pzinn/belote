@@ -83,6 +83,7 @@ function autoplay() {
 		im=i;
 	    }
 	}
+    gameInfo.playedCards[pos]=-1; // eww
     play(hand[im]);
 }
 
