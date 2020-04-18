@@ -1,3 +1,4 @@
+// - the bidding shouldn't be there at start
 // - the middle placeholders should disappear during bidding
 // - the welcome message is weirdly split in 2 places
 //
@@ -67,9 +68,22 @@ function showAllowed() {
 }
 
 function autoplay() {
-    var i=Math.floor(Math.random()*hand.length);
-    while (!validCard(gameInfo.playedCards,gameInfo.firstplayedCard,hand,gameInfo.trump,gameInfo.turn,hand[i])) i=(i+1)%hand.length;
-    play(hand[i]);
+    // make a list of valid cards
+    var i,im;
+    var v,vm=-1000;
+    for (i=0; i<hand.length; i++)
+	if (validCard(gameInfo.playedCards,gameInfo.firstplayedCard,hand,gameInfo.trump,gameInfo.turn,hand[i])) {
+	    if (gameInfo.firstplayedCard<0) v=0; else {
+		gameInfo.playedCards[pos]=hand[i]; // eww
+		v= (whowonit(gameInfo.playedCards,gameInfo.firstplayedCard,gameInfo.trump)%2 == pos%2 ? 1 : -1)
+		    *countPoints(gameInfo.playedCards,gameInfo.trump);
+	    }
+	    if (v+5*(Math.random()-0.5)>vm) {
+		vm=v;
+		im=i;
+	    }
+	}
+    play(hand[im]);
 }
 
 var autoeval=[];
@@ -82,18 +96,18 @@ function autobid() {
     if ((b=="all")||(b==160)) { bid("pass"); return; }
     if (autoeval.length==0) // evaluate hand
 	for (i=0; i<4; i++)
-	{
-	    autoeval[i]=0;
-	    for (j=0; j<hand.length; j++)
-		autoeval[i] += suit(hand[j])==i ? trumpvalue[hand[j]%8] : nontrumpvalue[hand[j]%8];
-	}
+    {
+	autoeval[i]=countPoints(hand,i);
+	for (j=0; j<8; j++)
+	    if (suit(hand[j])==i) autoeval[i]+=5;
+    }
     while (true) {
 	i=Math.floor(Math.random()*4);
-	if (autoeval[i]*2+Math.random()*10>b) {
+	if (autoeval[i]*1.5-Math.random()*10>b) {
 	    bid(b+10,i);
 	    return;
 	}
-	else if (Math.random()<0.25) {
+	else if (Math.random()<0.2) {
 	    bid("pass");
 	    return;
 	}

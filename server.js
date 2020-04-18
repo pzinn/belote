@@ -1,9 +1,8 @@
-// gracefully handle players leaving room
-// potential improvement: only broadcast back client who sent can send to itself, cf
+// - gracefully handle players leaving room
+// - potential improvement: only broadcast back client who sent can send to itself, cf
 // https://stackoverflow.com/questions/26324169/can-the-socket-io-client-emit-events-locally
-
 // - gameInfo should be objects with methods!!! ridiculous
-// - are all messages properly formatted? (with timestamps etc)
+// - @partner
 
 var PORT = process.env.PORT || 3000; // take port from heroku or for loacalhost
 var express = require("express");

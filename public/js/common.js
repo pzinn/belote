@@ -61,6 +61,29 @@ function validCard(playedCards,firstplayedCard,hand,trump,turn,card) {
     return true;
 }
 
+function whowonit(playedCards,firstplayedCard,trump) {
+    var vm=1000; var im;
+    var s; var s0=suit(firstplayedCard);
+    var v;
+    for (var i=0; i<4; i++)
+	if (playedCards[i]>=0)
+    {
+	s=suit(playedCards[i]);
+	if (s==trump) v=trumpordering[playedCards[i]%8];
+	else if (s==s0) v=8+nontrumpordering[playedCards[i]%8];
+	    if (v<vm) { vm=v; im=i; }
+    }
+    return im;
+}
+
+function countPoints(arr,trump) {
+    var c=0;
+    for (var j=0; j<arr.length; j++)
+	if (arr[j]>=0)
+	    c+= suit(arr[j])==trump ? trumpvalue[arr[j]%8] : nontrumpvalue[arr[j]%8];
+    return c;
+}
+
 function start_playing(gameInfo,message) {
     gameInfo.lastbids[i]=message.arg; // logging bids
     gameInfo.bidding=false;
@@ -136,21 +159,10 @@ function process_play(gameInfo,hand,message) { // if hand is null, means someone
     }
     if (gameInfo.playedCards.indexOf(-1)<0) { // everyone has played
 	// determine who won the trick
-	// either highest trump
-	var vm=1000; var im;
-	var s; var s0=suit(gameInfo.firstplayedCard);
-	var v;
-	for (var ii=0; ii<4; ii++)
-	{
-	    s=suit(gameInfo.playedCards[ii]);
-	    if (s==gameInfo.trump) v=trumpordering[gameInfo.playedCards[ii]%8];
-	    else if (s==s0) v=8+nontrumpordering[gameInfo.playedCards[ii]%8];
-	    if (v<vm) { vm=v; im=ii; }
-	}
-	gameInfo.turn=im;
+	gameInfo.turn=whowonit(gameInfo.playedCards,gameInfo.firstplayedCard,gameInfo.trump);
 	// tricks
 	for (var ii=0; ii<4; ii++)
-	    gameInfo.tricks[im].push(gameInfo.playedCards[ii]);
+	    gameInfo.tricks[gameInfo.turn].push(gameInfo.playedCards[ii]);
 	// clean up
 	gameInfo.lastTrick=gameInfo.playedCards; // ... but keep a copy for clients
 	gameInfo.playedCards=[-1,-1,-1,-1];
@@ -159,12 +171,9 @@ function process_play(gameInfo,hand,message) { // if hand is null, means someone
 	if (gameInfo.numcards[0]==0) { // not great
 	    // score calculation
 	    gameInfo.roundScores=[0,0];
-	    gameInfo.roundScores[im%2]=10; // 10 extra for last trick
+	    gameInfo.roundScores[gameInfo.turn%2]=10; // 10 extra for last trick
 	    for (var ii=0; ii<4; ii++)
-		for (var jj=0; jj<gameInfo.tricks[ii].length; jj++) {
-		    var c=gameInfo.tricks[ii][jj];
-		    gameInfo.roundScores[ii%2] += suit(c)==gameInfo.trump ? trumpvalue[c%8] : nontrumpvalue[c%8];
-		}
+		gameInfo.roundScores[ii%2]+=countPoints(gameInfo.tricks[ii],gameInfo.trump);
 	    // scorekeeping
 	    gameInfo.bidSuccess= ((gameInfo.roundScores[gameInfo.bidPlayer%2]>81)
 			 &&(((gameInfo.bid=="all")&&(gameInfo.tricks[gameInfo.bidPlayer].length+gameInfo.tricks[(gameInfo.bidPlayer+2)%4].length==8))
