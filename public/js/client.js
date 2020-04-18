@@ -677,15 +677,15 @@ socket.on("userSeen", function(msg) {
 function notifyMe(msg) {
     // Let's check if the browser supports notifications
     if (!("Notification" in window)) {
-	alert("This browser does not support desktop notification,try Chromium!");
+	alert("This browser does not support desktop notification");
     }
 
     // Let's check whether notification permissions have already been granted
     else if (Notification.permission === "granted") {
 	// If it's okay let's create a notification
 	//  var notification = new Notification(msg);
-	var notification = new Notification('Chat App', {
-	    body: msg.name + ": " + msg.text,
+	var notification = new Notification('Belote', {
+	    body: msg.name + ": " + msg.arg,
 	    icon: '/images/apple-icon.png' // optional
 	});
 	notification.onclick = function(event) {
@@ -698,7 +698,6 @@ function notifyMe(msg) {
 		user: name
 	    };
 	    socket.emit("userSeen", umsg);
-	    //window.open('http://www.mozilla.org', '_blank');
 	};
     }
     // Otherwise, we need to ask the user for permission
@@ -707,7 +706,7 @@ function notifyMe(msg) {
 	    // If the user accepts, let's create a notification
 	    if (permission === "granted") {
 		var notification = new Notification('Chat App', {
-		    body: msg.name + ": " + msg.text,
+		    body: msg.name + ": " + msg.arg,
 		    icon: '/images/apple-icon.png' // optional
 		});
 		notification.onclick = function(event) {
