@@ -149,8 +149,9 @@ io.on("connection", function(socket) {
 	});
     });
 
-    socket.on("ready", function(flag) { // client says ready to start game (or not)
+    socket.on("ready", function(message) { // client says ready to start game (or not)
 	var room = clientInfo[socket.id].room;
+	var flag = (message.arg!==false)&&(message.arg!="false");
 	if (gameInfo[room]!==undefined) { // game already started
 		socket.emit("message", {
 		    name: "System",
@@ -158,12 +159,13 @@ io.on("connection", function(socket) {
 		    timestamp: moment().valueOf()
 		});
 	} else {
-	    if (clientInfo[socket.id].ready==(flag!==false)) return;
-	    clientInfo[socket.id].ready=(flag!==false);
+	    if (clientInfo[socket.id].ready==flag) return;
+	    clientInfo[socket.id].ready=flag;
 	    var room=clientInfo[socket.id].room;
+	    var msg = flag ? " is ready" : " is not ready";
 	    io.in(room).emit("message", {
 		name: "Broadcast",
-		arg: clientInfo[socket.id].name+" ready: "+clientInfo[socket.id].ready,
+		arg: clientInfo[socket.id].name+msg,
 		timestamp: moment().valueOf()
 	    });
 	}

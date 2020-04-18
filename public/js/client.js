@@ -342,7 +342,11 @@ socket.on("hand", function(h) {
 });
 
 function ready(flag) {
-    socket.emit("ready",flag);
+    socket.emit("ready", {
+	name: name,
+	timestamp : moment().valueOf(),
+	arg: flag
+    });
 }
 
 function removebtn() {
