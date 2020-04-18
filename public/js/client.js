@@ -240,6 +240,7 @@ function signalTurn() {
 function displayBid() {
     var bid="";
     if (gameInfo.playing) {
+	bid+="<div>"+gameInfo.playerNames[gameInfo.bidPlayer]+"</div>";
 	bid+="<div style='font-size:150%'>"+gameInfo.bid +" "+suitshtml[gameInfo.trump]+"</div>";
 	if (gameInfo.surcoinche) bid+="surcoinche";
 	else if (gameInfo.coinche) bid+="coinche";
@@ -248,14 +249,15 @@ function displayBid() {
 }
 
 function displayScores() {
-    // TEMP need better scoring
     document.getElementById("scoresname1").innerHTML=gameInfo.playerNames[0]+"<br/>"+gameInfo.playerNames[2];
     document.getElementById("scoresname2").innerHTML=gameInfo.playerNames[1]+"<br/>"+gameInfo.playerNames[3];
     document.getElementById("totalscore1").innerHTML=gameInfo.totalScores[0];
     document.getElementById("totalscore2").innerHTML=gameInfo.totalScores[1];
 
     var tr,td;
-    var el=document.getElementById("scores");
+    var el0=document.getElementById("scores");
+    var el = el0.cloneNode(false);
+    el0.parentNode.replaceChild(el, el0);
     for (var i=0; i<gameInfo.scores.length; i++) {
 	tr=document.createElement("tr");
 	for (var j=0; j<2; j++) {
@@ -508,8 +510,17 @@ socket.on("play", function(message) {
 	}
 	else drawPlayedCard(i);
 
-	if (Math.max(...gameInfo.numcards)==0) { // end of round
-	    displayScores();
+	if (Math.max(...gameInfo.numcards)==0) { // end of round: already display new scores
+	    document.getElementById("totalscore1").innerHTML=gameInfo.totalScores[0];
+	    document.getElementById("totalscore2").innerHTML=gameInfo.totalScores[1];
+	    var el=document.getElementById("scores");
+	    tr=document.createElement("tr");
+	    for (var j=0; j<2; j++) {
+		td=document.createElement("td");
+		td.innerHTML=gameInfo.scores[gameInfo.scores.length-1][j];
+		tr.appendChild(td);
+	    }
+	    el.appendChild(tr);
 	}
 	/*
 	  if (gameInfo.bidding) { // back to bidding: update visibility

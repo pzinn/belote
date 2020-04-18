@@ -1,3 +1,4 @@
+// gracefully handle players leaving room
 // potential improvement: only broadcast back client who sent can send to itself, cf
 // https://stackoverflow.com/questions/26324169/can-the-socket-io-client-emit-events-locally
 
