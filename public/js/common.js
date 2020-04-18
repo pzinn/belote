@@ -61,6 +61,13 @@ function validCard(playedCards,firstplayedCard,hand,trump,turn,card) {
     return true;
 }
 
+function start_playing(gameInfo,message) {
+    gameInfo.lastbids[i]=message.arg; // logging bids
+    gameInfo.bidding=false;
+    gameInfo.playing=true;
+    gameInfo.turn=gameInfo.startingPlayer;
+}
+
 function process_bid(gameInfo,message) {
     if ((gameInfo===null)||(!gameInfo.bidding)) return false; // not bidding
     var name=message.name;
@@ -75,15 +82,19 @@ function process_bid(gameInfo,message) {
     if (message.arg == "pass")
     {
 	gameInfo.bidPasses++;
+	if (gameInfo.bidPasses==4) { gameInfo.lastbids[i]=message.arg; gameInfo.turn=-1; return true; }
 	if ((gameInfo.bidPasses==3)&&(gameInfo.bidPlayer>=0)) {
-	    gameInfo.bidding=false;
-	    gameInfo.playing=true;
-	    gameInfo.turn=gameInfo.startingPlayer;
+	    start_playing(gameInfo,message);
+	    return true;
 	}
     } else if (message.arg == "coinche") {
 	if (gameInfo.coinche)
-	    if (gameInfo.surcoinche) return false; else gameInfo.surcoinche=true;
-	else gameInfo.coinche=true;
+	    if (gameInfo.surcoinche) return false; else {
+		gameInfo.surcoinche=true;
+		start_playing(gameInfo,message);
+		return true;
+	    }
+	gameInfo.coinche=true;
     }
     else {
 	if (gameInfo.coinche) return false; // can't bid after coinche
@@ -155,11 +166,11 @@ function process_play(gameInfo,hand,message) { // if hand is null, means someone
 		    gameInfo.roundScores[ii%2] += suit(c)==gameInfo.trump ? trumpvalue[c%8] : nontrumpvalue[c%8];
 		}
 	    // scorekeeping
-	    gameInfo.bidSuccess= ((sc[gameInfo.bidPlayer%2]>81)
+	    gameInfo.bidSuccess= ((gameInfo.roundScores[gameInfo.bidPlayer%2]>81)
 			 &&(((gameInfo.bid=="all")&&(gameInfo.tricks[gameInfo.bidPlayer].length+gameInfo.tricks[(gameInfo.bidPlayer+2)%4].length==8))
-			    ||((gameInfo.bid!="all")&&(sc[gameInfo.bidPlayer%2]>=gameInfo.bid))));
+			    ||((gameInfo.bid!="all")&&(gameInfo.roundScores[gameInfo.bidPlayer%2]>=gameInfo.bid))));
 	    var sc = (gameInfo.bid == "all" ? 250 : gameInfo.bid) * (gameInfo.coinche ? gameInfo.surcoinche? 4 : 2 : 1);
-	    if (gameInfo.bidplayer%2 == (gameInfo.bidSuccess?0:1)) {
+	    if (gameInfo.bidPlayer%2 == (gameInfo.bidSuccess?0:1)) {
 		gameInfo.scores.push([sc,0]);
 		gameInfo.totalScores[0]+=sc;
 	    } else {
@@ -171,7 +182,6 @@ function process_play(gameInfo,hand,message) { // if hand is null, means someone
 	      for (var ii=0; ii<2; ii++)
 		  gameInfo.totalScores[ii]+=10*Math.round(gameInfo.roundScores[ii]/10);
 	    */
-	    gameInfo.scores.push(sc);
 	    gameInfo.deck=gameInfo.tricks[0].concat(gameInfo.tricks[1],gameInfo.tricks[2],gameInfo.tricks[3]); // reform the deck
 	}
     }

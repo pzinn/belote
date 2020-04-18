@@ -191,8 +191,12 @@ ul.list-group {
     top: 0%;
 }
 
-#Wname {
+.names {
+    border-radius: 10px;
     position: absolute;
+}
+
+#nameW {
     left: 10px;
     top: 50%;
     transform: translate(0%,-50%);    
@@ -201,8 +205,7 @@ ul.list-group {
     padding: 10px 2px 10px 2px;
 }
 
-#Ename {
-    position: absolute;
+#nameE {
     right: 10px;
     top: 50%;
     transform: translate(0%,-50%);    
@@ -211,16 +214,14 @@ ul.list-group {
     padding: 10px 2px 10px 2px;
 }
 
-#Sname {
-    position: absolute;
+#nameS {
     left:50%;
     bottom: 10px;
     transform: translate(-50%,0%);
     padding: 2px 10px 2px 10px;
 }
 
-#Nname {
-    position: absolute;
+#nameN {
     left:50%;
     top: 10px;
     transform: translate(-50%,0%);    
@@ -259,9 +260,17 @@ ul.list-group {
     white-space: nowrap;
 }
 
-.scores td, th {
+.scores th {
     border: 1px solid black;
     padding: 5px;
+    text-align: center;
+}
+.scores td {
+    border-style: solid;
+    border-width: 0px 1px 0px 1px;
+    border-color: black
+    padding: 5px;
+    text-align: center;
 }
 
 .ready {

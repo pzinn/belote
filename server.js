@@ -180,6 +180,7 @@ io.on("connection", function(socket) {
     socket.on("bid", function(message) { // arg should be [bid,suit] where bid = number or "pass"
 	var name = clientInfo[socket.id].name; // should be same as message.name
 	var room = clientInfo[socket.id].room;
+	if (typeof gameInfo[room] === "undefined") return;
 	if (common.process_bid(gameInfo[room],message)) {
 	    io.in(room).emit("bid", message);
 	    if (gameInfo[room].bidPasses==4) { // nobody bid
@@ -189,7 +190,7 @@ io.on("connection", function(socket) {
 		    timestamp: moment().valueOf()
 		});
 		gameInfo[room].deck=gameCards[room][0].concat(gameCards[room][1],gameCards[room][2],gameCards[room][3]); // reform the deck
-		startRound(room);
+		setTimeout(startRound,2500,room);
 	    }
 	    else {
 		var msg;
@@ -211,6 +212,7 @@ io.on("connection", function(socket) {
     socket.on("play", function(message) { //	
 	var name = clientInfo[socket.id].name; // should be same as message.name
 	var room = clientInfo[socket.id].room;
+	if (typeof gameInfo[room] === "undefined") return;
 	if (common.process_play(gameInfo[room],gameCards[room][gameInfo[room].turn],message)) {
 	    io.in(room).emit("play", message);
 	    // lots of messaging to do

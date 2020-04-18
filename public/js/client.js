@@ -1,4 +1,4 @@
-// - quench missing
+// - the middle placeholders should disappear during bidding
 // - the welcome message is weirdly split in 2 places
 //
 // - one should be able to reorder cards
@@ -75,7 +75,7 @@ function autoplay() {
 var autoeval=[];
 
 function autobid() {
-    //if (gameInfo.coinche) // TEMP
+    if (gameInfo.coinche)
 	bid("pass");
     var b=+gameInfo.bid;
     var i,j;
@@ -201,7 +201,7 @@ function signalTurn() {
     for (i=0; i<4; i++)
     {
 	var k=(i+4-pos)%4; // position relative to me
-	var nameel=document.getElementById(dirs[k]+"name");
+	var nameel=document.getElementById("name"+dirs[k]);
 	nameel.innerHTML=gameInfo.playerNames[i];
 	nameel.style.border= i==gameInfo.turn ? "3px solid  #FF0000" : "3px solid transparent";
     }
@@ -251,8 +251,20 @@ function displayScores() {
     // TEMP need better scoring
     document.getElementById("scoresname1").innerHTML=gameInfo.playerNames[0]+"<br/>"+gameInfo.playerNames[2];
     document.getElementById("scoresname2").innerHTML=gameInfo.playerNames[1]+"<br/>"+gameInfo.playerNames[3];
-    document.getElementById("score1").innerHTML=gameInfo.totalScores[0];
-    document.getElementById("score2").innerHTML=gameInfo.totalScores[1];
+    document.getElementById("totalscore1").innerHTML=gameInfo.totalScores[0];
+    document.getElementById("totalscore2").innerHTML=gameInfo.totalScores[1];
+
+    var tr,td;
+    var el=document.getElementById("scores");
+    for (var i=0; i<gameInfo.scores.length; i++) {
+	tr=document.createElement("tr");
+	for (var j=0; j<2; j++) {
+	    td=document.createElement("td");
+	    td.innerHTML=gameInfo.scores[i][j];
+	    tr.appendChild(td);
+	}
+	el.appendChild(tr);
+    }
 }
 
 socket.on("gameInfo", function(gameInfo1) {
@@ -496,12 +508,17 @@ socket.on("play", function(message) {
 	}
 	else drawPlayedCard(i);
 
-	if (gameInfo.bidding) { // back to bidding: update visibility
-	    for (var i=0; i<4; i++)
-		document.getElementById("bidding"+dirs[i]).hidden=false;
-	    document.getElementById("playedcards").hidden=true;
-	    document.getElementById("bid").innerHTML="";
+	if (Math.max(...gameInfo.numcards)==0) { // end of round
+	    displayScores();
 	}
+	/*
+	  if (gameInfo.bidding) { // back to bidding: update visibility
+	  for (var i=0; i<4; i++)
+	  document.getElementById("bidding"+dirs[i]).hidden=false;
+	  document.getElementById("playedcards").hidden=true;
+	  document.getElementById("bid").innerHTML="";
+	  }
+	*/
 	signalTurn();
     }
 });

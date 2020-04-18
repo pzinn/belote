@@ -19,9 +19,15 @@
     <div class="container-fluid">
       <div class="row">
         <div class="col-md-1 well">
-	<table class="scores" id="scores">
-	  <tr><th id="scoresname1"></th><th id="scoresname2"></th></tr>
-	  <tr><td id="score1"></td><td id="score2"></td></tr>
+	  <table class="scores">
+	    <thead>
+	      <tr><th id="scoresname1"></th><th id="scoresname2"></th></tr>
+	    </thead>
+	    <tbody id="scores">
+	    </tbody>
+	    <tfoot>
+	      <tr><th id="totalscore1"></th><th id="totalscore2"></th></tr>
+	    </tfoot>
 	</table>
 	</div>
         <div class="col-md-6 well" style="min-height:900px;min-width:900px;">
@@ -39,7 +45,7 @@
 	    <img src="images/cards/cardholder.png" class="card EP">
 	    <img src="images/cards/cardholder.png" class="card SP">
 	  </div>
-	  <div id="Nname"></div>
+	  <div class="names" id="nameN"></div>
 	  <div id="cardareaN">
 	    <img src="images/cards/cardholder.png" class="card" id="N0">
 	    <img src="images/cards/cardholder.png" class="card" id="N1">
@@ -81,7 +87,7 @@
 	    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 	    <button class="btn btn-default" id="coincheN" disabled="disabled">coinche</button>
 	  </div>
-	  <div id="Wname"></div>
+	  <div class="names" id="nameW"></div>
 	  <div id="cardareaW">
 	    <img src="images/cards/cardholder.png" class="card" id="W0">
 	    <img src="images/cards/cardholder.png" class="card" id="W1">
@@ -120,7 +126,7 @@
 	    <button class="btn btn-default" id="allW" disabled="disabled">all</button><br/>
 	    <button class="btn btn-default" id="coincheW" disabled="disabled"><span style="font-size:80%;writing-mode:vertical-rl;text-orientation:upright">coinche</span></button>
 	  </div>
-	  <div id="Ename" id="Ename"></div>
+	  <div class="names" id="nameE"></div>
 	  <div id="cardareaE">
 	    <img src="images/cards/cardholder.png" class="card" id="E0">
 	    <img src="images/cards/cardholder.png" class="card" id="E1">
@@ -159,7 +165,7 @@
 	    <button class="btn btn-default" id="allE" disabled="disabled">all</button><br/>
 	    <button class="btn btn-default" id="coincheE" disabled="disabled"><span style="font-size:80%;writing-mode:vertical-rl;text-orientation:upright">coinche</span></button>
 </div>
-	  <div id="Sname"></div>
+	  <div class="names" id="nameS"></div>
 	  <div id="cardareaS">
 	    <img src="images/cards/cardholder.png" class="card" id="S0">
 	    <img src="images/cards/cardholder.png" class="card" id="S1">
