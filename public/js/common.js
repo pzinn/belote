@@ -155,16 +155,23 @@ function process_play(gameInfo,hand,message) { // if hand is null, means someone
 		    gameInfo.roundScores[ii%2] += suit(c)==gameInfo.trump ? trumpvalue[c%8] : nontrumpvalue[c%8];
 		}
 	    // scorekeeping
-	    gameInfo.bidSuccess= ((gameInfo.roundScores[gameInfo.bidPlayer%2]>81)
+	    gameInfo.bidSuccess= ((sc[gameInfo.bidPlayer%2]>81)
 			 &&(((gameInfo.bid=="all")&&(gameInfo.tricks[gameInfo.bidPlayer].length+gameInfo.tricks[(gameInfo.bidPlayer+2)%4].length==8))
-			    ||((gameInfo.bid!="all")&&(gameInfo.roundScores[gameInfo.bidPlayer%2]>gameInfo.bid))));
-	    gameInfo.scores[(gameInfo.bidPlayer+(gameInfo.bidSucesss?0:1))%2] += (gameInfo.bid == "all" ? 250 : gameInfo.bid)
-		* (gameInfo.coinche ? gameInfo.surcoinche? 4 : 2 : 1);
+			    ||((gameInfo.bid!="all")&&(sc[gameInfo.bidPlayer%2]>=gameInfo.bid))));
+	    var sc = (gameInfo.bid == "all" ? 250 : gameInfo.bid) * (gameInfo.coinche ? gameInfo.surcoinche? 4 : 2 : 1);
+	    if (gameInfo.bidplayer%2 == (gameInfo.bidSuccess?0:1)) {
+		gameInfo.scores.push([sc,0]);
+		gameInfo.totalScores[0]+=sc;
+	    } else {
+		gameInfo.scores.push([0,sc]);
+		gameInfo.totalScores[1]+=sc;
+	    }
+	    // variation of the rule
 	    /*
 	      for (var ii=0; ii<2; ii++)
-	      gameInfo.scores[ii]+=10*Math.round(gameInfo.roundScores[ii]/10); // variation of the rules
+		  gameInfo.totalScores[ii]+=10*Math.round(gameInfo.roundScores[ii]/10);
 	    */
-
+	    gameInfo.scores.push(sc);
 	    gameInfo.deck=gameInfo.tricks[0].concat(gameInfo.tricks[1],gameInfo.tricks[2],gameInfo.tricks[3]); // reform the deck
 	}
     }

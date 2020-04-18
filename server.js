@@ -188,7 +188,7 @@ io.on("connection", function(socket) {
 		    text: "Everyone passed",
 		    timestamp: moment().valueOf()
 		});
-		gameInfo.deck=gameCards[room][0].concat(gameCards[room][1],gameCards[room][2],gameCards[room][3]); // reform the deck
+		gameInfo[room].deck=gameCards[room][0].concat(gameCards[room][1],gameCards[room][2],gameCards[room][3]); // reform the deck
 		startRound(room);
 	    }
 	    else {
@@ -224,8 +224,8 @@ io.on("connection", function(socket) {
 		var msg = gameInfo[room].playerNames[0]+"/"+gameInfo[room].playerNames[2]+": "+gameInfo[room].roundScores[0]+" pts<br/>"
 		    +gameInfo[room].playerNames[1]+"/"+gameInfo[room].playerNames[3]+": "+gameInfo[room].roundScores[1]+" pts<br/>";
 		msg += gameInfo[room].bidSuccess ? "Bid successful<br/>" : "Bid unsuccessful<br/>";
-		msg += "Total "+gameInfo[room].playerNames[0]+"/"+gameInfo[room].playerNames[2]+": "+gameInfo[room].scores[0]+" pts<br/>"
-		    +"Total "+gameInfo[room].playerNames[1]+"/"+gameInfo[room].playerNames[3]+": "+gameInfo[room].scores[1]+" pts";
+		msg += "Total "+gameInfo[room].playerNames[0]+"/"+gameInfo[room].playerNames[2]+": "+gameInfo[room].totalScores[0]+" pts<br/>"
+		    +"Total "+gameInfo[room].playerNames[1]+"/"+gameInfo[room].playerNames[3]+": "+gameInfo[room].totalScores[1]+" pts";
 		io.in(room).emit("message", {
 		    name: "Broadcast",
 		    text: msg,
@@ -265,7 +265,7 @@ function startGame(room) {
     });
     gameInfo[room].deck=[...Array(32).keys()];
     shuffleArray(gameInfo[room].deck);
-    gameInfo[room].scores=[0,0];
+    gameInfo[room].totalScores=[0,0]; gameInfo[room].scores=[];
     // starting player
     gameInfo[room].startingPlayer=Math.floor(Math.random()*4);
     startRound(room);

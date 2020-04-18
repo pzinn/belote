@@ -75,7 +75,8 @@ function autoplay() {
 var autoeval=[];
 
 function autobid() {
-    if (gameInfo.coinche) bid("pass");
+    //if (gameInfo.coinche) // TEMP
+	bid("pass");
     var b=+gameInfo.bid;
     var i,j;
     if ((b=="all")||(b==160)) { bid("pass"); return; }
@@ -250,8 +251,8 @@ function displayScores() {
     // TEMP need better scoring
     document.getElementById("scoresname1").innerHTML=gameInfo.playerNames[0]+"<br/>"+gameInfo.playerNames[2];
     document.getElementById("scoresname2").innerHTML=gameInfo.playerNames[1]+"<br/>"+gameInfo.playerNames[3];
-    document.getElementById("score1").innerHTML=gameInfo.scores[0];
-    document.getElementById("score2").innerHTML=gameInfo.scores[1];
+    document.getElementById("score1").innerHTML=gameInfo.totalScores[0];
+    document.getElementById("score2").innerHTML=gameInfo.totalScores[1];
 }
 
 socket.on("gameInfo", function(gameInfo1) {
