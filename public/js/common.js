@@ -133,6 +133,7 @@ function process_bid(gameInfo,message) {
     }
     gameInfo.lastbids[i]=message.arg; // logging bids
     gameInfo.turn=(gameInfo.turn+1)%4;
+    gameInfo.lastbids[gameInfo.turn]=-1;
     return true;
 }
 

@@ -1,9 +1,8 @@
-// - the bidding shouldn't be there at start
-// - the middle placeholders should disappear during bidding
 // - the welcome message is weirdly split in 2 places
-//
 // - one should be able to reorder cards
-// - lower res versions of cards
+// - say who trick goes to?
+// - undo?
+// - lower res versions of cards?
 // - timeout on "typing..." not working
 
 
@@ -201,6 +200,10 @@ function drawBid(j) {
 	document.getElementById("pass"+dirs[k]).classList.add("btn-primary");
     else
 	document.getElementById("pass"+dirs[k]).classList.remove("btn-primary");
+    if (gameInfo.lastbids[j]=="coinche")
+	document.getElementById("coinche"+dirs[k]).classList.add("btn-primary");
+    else
+	document.getElementById("coinche"+dirs[k]).classList.remove("btn-primary");
 }
 
 function drawBids() {
@@ -242,13 +245,14 @@ function signalTurn() {
 		mybid=mysuit=-1;
 	    }
     } else if (gameInfo.bidding) {
-	      var i;
-	      for (i=0; i<4; i++)
-		  document.getElementById("suit"+i+dirs[0]).disabled=true;
-	      for (i=0; i<bidlist.length; i++)
-		  document.getElementById(bidlist[i]+dirs[0]).disabled=true;
-	      document.getElementById("pass"+dirs[0]).disabled=true;
-	      document.getElementById("coinche"+dirs[0]).disabled=true;
+	var i;
+	for (i=0; i<4; i++)
+	    document.getElementById("suit"+i+dirs[0]).disabled=true;
+	for (i=0; i<bidlist.length; i++)
+	    document.getElementById(bidlist[i]+dirs[0]).disabled=true;
+	document.getElementById("pass"+dirs[0]).disabled=true;
+	document.getElementById("coinche"+dirs[0]).disabled=true;
+	drawBid(gameInfo.turn); // to remove the previous bid
     }
 }
 
@@ -658,14 +662,14 @@ socket.on("userSeen", function(msg) {
 
     // if (msg.user == name) {
     // read message
-    // show messags only to user who has typied
+    // show messags only to user who has typed
     var s="fa fa-check-circle";
     if (msg.read) {
 	//user read the message
 	s+="msg-read";
     } else {
-	// message deleiverd but not read yet
-	s+="msg-delieverd";
+	// message delivered but not read yet
+	s+="msg-delievered";
     }
     document.getElementById("icon-type").className=s;
 //    console.log(msg);
