@@ -2,25 +2,23 @@
 // - potential improvement: only broadcast back client who sent can send to itself, cf
 // https://stackoverflow.com/questions/26324169/can-the-socket-io-client-emit-events-locally
 // - gameInfo should be objects with methods!!! ridiculous
-// - @partner
 
-var PORT = process.env.PORT || 3000; // take port from heroku or for loacalhost
-var express = require("express");
-var app = express(); // express app which is used boilerplate for HTTP
-var http = require("http").Server(app);
+const express = require("express");
+const app = express(); // express app which is used boilerplate for HTTP
+const http = require("http").Server(app);
+const moment = require("moment"); // for timestamps
+//socket io module
+var io = require("socket.io")(http);
+
+const PORT = process.env.PORT || 3000;
 
 const common = require('./public/js/common.js');
 const help = require('./public/js/help.js');
-
-//moment js
-var moment = require("moment");
 
 var clientInfo = {}; // keys = socket ids
 var gameInfo = {}; // keys = room names
 var gameCards = {}; // keys = room names
 
-//socket io module
-var io = require("socket.io")(http);
 
 // expose the folder via express thought
 app.use(express.static(__dirname + '/public'));
