@@ -355,6 +355,25 @@ socket.on("hand", function(h) {
 	    cardel.alt=-1;
 	}
 	cardel.classList.remove("active");
+	cardel.draggable=true;
+	cardel.ondragstart = function(event) { event.dataTransfer.setData("id",this.id); }
+	cardel.ondragover = function(event) { event.preventDefault(); }
+	cardel.ondrop = function(event) {
+	    event.preventDefault();
+	    var sourceid = event.dataTransfer.getData("id");
+	    if ((typeof sourceid !== "undefined")&&(sourceid != this.id)) { // card swap
+		var sourceel=document.getElementById(sourceid);
+		var tmp = sourceel.src;
+		sourceel.src = this.src;
+		this.src = tmp;
+		tmp = sourceel.alt;
+		sourceel.alt = this.alt;
+		this.alt = tmp;
+		tmp = sourceel.className;
+		sourceel.className = this.className;
+		this.className = tmp;
+	    }
+	}
     }
     // for autoplay
     autoeval=[];
