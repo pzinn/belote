@@ -280,3 +280,7 @@ ul.list-group {
     top: 10px;
     font-size: 200%;
 }
+
+.first-player {
+    background-color: yellow;
+}

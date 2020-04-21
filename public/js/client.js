@@ -1,10 +1,10 @@
-// - the welcome message is weirdly split in 2 places
-// - one should be able to reorder cards
+// - mark first player
+// - make suits bigger in chat
 // - say who trick goes to?
 // - undo?
 // - lower res versions of cards?
 // - timeout on "typing..." not working
-
+// - the welcome message is weirdly split in 2 places
 
 var socket = io();
 // listen for server connection
@@ -214,14 +214,24 @@ function drawBids() {
 	for (i=0; i<4; i++) drawBid(i);
 }
 
-function signalTurn() {
-    var k;
+function writeNames() {
+    var i,k,nameel;
     for (i=0; i<4; i++)
     {
-	var k=(i+4-pos)%4; // position relative to me
-	var nameel=document.getElementById("name"+dirs[k]);
+	k=(i+4-pos)%4; // position relative to me
+	//	document.getElementById("name"+dirs[k]).innerHTML=gameInfo.playerNames[i]+(i==gameInfo.startingPlayer?" *":"");
+	nameel=document.getElementById("name"+dirs[k]);
 	nameel.innerHTML=gameInfo.playerNames[i];
-	nameel.style.border= i==gameInfo.turn ? "3px solid  #FF0000" : "3px solid transparent";
+	if (i==gameInfo.startingPlayer) nameel.classList.add("first-player");
+    }
+}
+
+function signalTurn() {
+    var i,k;
+    for (i=0; i<4; i++)
+    {
+	k=(i+4-pos)%4; // position relative to me
+	document.getElementById("name"+dirs[k]).style.border= i==gameInfo.turn ? "3px solid  #FF0000" : "3px solid transparent";
     }
 
     if (gameInfo.turn==pos) {
@@ -306,6 +316,8 @@ socket.on("gameInfo", function(gameInfo1) {
     // determine my number -- if I'm a player
     pos=gameInfo.playerNames.indexOf(name);
     document.getElementById("ready").checked= (pos>=0);
+
+    writeNames();
 	
     var message;
     if (gameInfo.playing) message = {
