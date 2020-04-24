@@ -1,7 +1,8 @@
 // - gracefully handle players leaving room
+// - make ready a playername option
 // - potential improvement: only broadcast back client who sent can send to itself, cf
 // https://stackoverflow.com/questions/26324169/can-the-socket-io-client-emit-events-locally
-// - gameInfo should be objects with methods!!! ridiculous
+// - gameInfo should be objects with methods
 
 const express = require("express");
 const app = express(); // express app which is used boilerplate for HTTP
@@ -22,34 +23,6 @@ var gameCards = {}; // keys = room names
 
 // expose the folder via express thought
 app.use(express.static(__dirname + '/public'));
-
-// send current users to provided socket
-function sendCurrentUsers(socket) { // loading current users
-    var info = clientInfo[socket.id];
-    var users = [];
-    if (typeof info === 'undefined') {
-	return;
-    }
-    // filter name based on rooms
-    Object.keys(clientInfo).forEach(function(socketId) {
-	var userinfo = clientInfo[socketId];
-	// check if user room and selcted room same or not
-	// as user should see names in only his chat room
-	if (info.room == userinfo.room) {
-	    users.push(userinfo.name);
-	}
-
-    });
-    // emit message when all users list
-
-    socket.emit("message", {
-	name: "System",
-	arg: "Current Users : " + users.join(', '),
-	timestamp: moment().valueOf()
-    });
-
-}
-
 
 // general purpose
 function shuffleArray(array) {
@@ -82,12 +55,23 @@ io.on("connection", function(socket) {
 	}
     });
 
-    // for private chat
+    // when entering a room
     socket.on('joinRoom', function(req) {
 	var room=req.room;
-	clientInfo[socket.id] = req;
+	// check that user's name not already taken but only give warning
+	if (typeof io.sockets.adapter.rooms[room] !== "undefined") {
+	    var people = Object.keys(io.sockets.adapter.rooms[room].sockets);
+	    var names = people.map( id => clientInfo[id].name );
+	    if (names.indexOf(req.name)>=0)
+		io.in(room).emit("message", {
+		    name: "Broadcast",
+		    arg: "Warning: multiple logins of "+req.name,
+		    timestamp: moment().valueOf()
+		});
+	}
 	socket.join(room);
-	//broadcast new user joined room
+	clientInfo[socket.id] = req;
+	// broadcast new user joined room
 	socket.broadcast.to(room).emit("message", {
 	    name: "Broadcast",
 	    arg: req.name + ' has joined',
@@ -135,7 +119,14 @@ io.on("connection", function(socket) {
     });
 
     socket.on("users", function() {
-	sendCurrentUsers(socket); // to show all current users
+	var info = clientInfo[socket.id];
+	var people = Object.keys(io.sockets.adapter.rooms[info.room].sockets);
+	var names = people.map( id => clientInfo[id].name );
+	socket.emit("message", {
+	    name: "System",
+	    arg: "Current users : " + names.join(', '),
+	    timestamp: moment().valueOf()
+	});
     });
 
     socket.on("help", function() {
@@ -166,7 +157,7 @@ io.on("connection", function(socket) {
 		timestamp: moment().valueOf()
 	    });
 	}
-	// check if required number of players
+	// check if required number of players TEMP do better
 	var people=Object.keys(io.sockets.adapter.rooms[room].sockets);
 	var n=0;
 	for (var i=0; i<people.length; i++)
@@ -360,6 +351,7 @@ function startRound(room) {
     });
 
     // send the private info: hand
+    var people = Object.keys(io.sockets.adapter.rooms[info.room].sockets);
     for (i=0; i<4; i++)
 	io.to(players[i]).emit("hand", gameCards[room][i]);
 
