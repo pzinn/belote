@@ -545,14 +545,6 @@ socket.on("play", function(message) {
 	    }
 	    el.appendChild(tr);
 	}
-	/*
-	  if (gameInfo.bidding) { // back to bidding: update visibility
-	  for (var i=0; i<4; i++)
-	  document.getElementById("bidding"+dirs[i]).hidden=false;
-	  document.getElementById("playedcards").hidden=true;
-	  document.getElementById("bid").innerHTML="";
-	  }
-	*/
 	signalTurn();
     }
 });

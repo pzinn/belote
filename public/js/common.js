@@ -100,7 +100,7 @@ function process_bid(gameInfo,message) {
     if (typeof message.arg === "string") message.arg=message.arg.toLowerCase();
     if (typeof message.arg[0] === "string")
 	if ((message.arg[0].toLowerCase()=="pass")||(message.arg[0].toLowerCase()=="coinche")) message.arg=message.arg[0].toLowerCase();
-    else message.arg[0]=+message.arg[0];
+    else if (message.arg[0].toLowerCase()=="all") message.arg[0]="all"; else message.arg[0]=+message.arg[0]; // ewww
     //
     if (message.arg == "pass")
     {
@@ -121,7 +121,8 @@ function process_bid(gameInfo,message) {
     }
     else {
 	if (gameInfo.coinche) return false; // can't bid after coinche
-	if ((message.arg[0]!="all")&&((message.arg[0]<=gameInfo.bid)||(gameInfo.bid=="all")||(message.arg[0]%10!=0)||(message.arg[0]>160))) return false; // shouldn't happen
+	const numBid = message.arg[0] == "all" ? 250 : message.arg[0];
+	if ((numBid<=gameInfo.bid)||((numBid>160)&&(numBid!=250))||(numBid%10!=0)) return false; // shouldn't happen
 	gameInfo.bid=message.arg[0];
 	var k=-1;
 	if (typeof message.arg[1] === "string") k=suitshtml0.indexOf(message.arg[1]);
@@ -176,10 +177,10 @@ function process_play(gameInfo,hand,message) { // if hand is null, means someone
 	    for (var ii=0; ii<4; ii++)
 		gameInfo.roundScores[ii%2]+=countPoints(gameInfo.tricks[ii],gameInfo.trump);
 	    // scorekeeping
-	    gameInfo.bidSuccess= ((gameInfo.roundScores[gameInfo.bidPlayer%2]>81)
-			 &&(((gameInfo.bid=="all")&&(gameInfo.tricks[gameInfo.bidPlayer].length+gameInfo.tricks[(gameInfo.bidPlayer+2)%4].length==8))
-			    ||((gameInfo.bid!="all")&&(gameInfo.roundScores[gameInfo.bidPlayer%2]>=gameInfo.bid))));
-	    var sc = (gameInfo.bid == "all" ? 250 : gameInfo.bid) * (gameInfo.coinche ? gameInfo.surcoinche? 4 : 2 : 1);
+	    const numBid = gameInfo.bid == "all" ? 250 : gameInfo.bid;
+	    gameInfo.bidSuccess=((gameInfo.roundScores[gameInfo.bidPlayer%2]>Math.max(81,numBid))
+				 ||((numBid==250)&&(gameInfo.tricks[gameInfo.bidPlayer].length+gameInfo.tricks[(gameInfo.bidPlayer+2)%4].length==8)));
+	    var sc = numBid * (gameInfo.coinche ? gameInfo.surcoinche? 4 : 2 : 1);
 	    if (gameInfo.bidPlayer%2 == (gameInfo.bidSuccess?0:1)) {
 		gameInfo.scores.push([sc,0]);
 		gameInfo.totalScores[0]+=sc;

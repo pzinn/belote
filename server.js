@@ -1,4 +1,5 @@
 // - gracefully handle players leaving room
+// in particular should game end if all players leave?
 // right now ready is *not* preserved by reloading page
 // - potential improvement: only broadcast back client who sent can send to itself, cf
 // https://stackoverflow.com/questions/26324169/can-the-socket-io-client-emit-events-locally
