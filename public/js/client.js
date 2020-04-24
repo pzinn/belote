@@ -21,8 +21,8 @@ var dirs=["S","W","N","E"];
 var prefix="images/cards/";
 var cols=["green","green","green","green"]; //["red","green","blue","yellow"]; // backs of cards
 
-var mysuit=-1;
-var mybid=-1;
+var mysuit=null;
+var mybid=-null;
 var bidlist=["80","90","100","110","120","130","140","150","160","all"];
 
 document.getElementById("room-title").innerHTML=room;
@@ -220,7 +220,7 @@ function writeNames() {
 	//	document.getElementById("name"+dirs[k]).innerHTML=gameInfo.playerNames[i]+(i==gameInfo.startingPlayer?" *":"");
 	nameel=document.getElementById("name"+dirs[k]);
 	nameel.innerHTML=gameInfo.playerNames[i];
-	if (i==gameInfo.startingPlayer) nameel.classList.add("first-player");
+	if (i==gameInfo.startingPlayer) nameel.classList.add("first-player"); else nameel.classList.remove("first-player");
     }
 }
 
@@ -250,7 +250,7 @@ function signalTurn() {
 		document.getElementById("pass"+dirs[0]).classList.remove("btn-primary");
 		document.getElementById("pass"+dirs[0]).disabled=false;
 		document.getElementById("coinche"+dirs[0]).disabled=(gameInfo.bidPlayer<0)||(((gameInfo.bidPlayer%2 == pos%2)||gameInfo.coinche)&&((gameInfo.bidPlayer%2 != pos%2)||!gameInfo.coinche||gameInfo.surcoinche));
-		mybid=mysuit=-1;
+		mybid=mysuit=null;
 	    }
     } else if (gameInfo.bidding) {
 	var i;
@@ -415,10 +415,10 @@ function bidsuit(s) {
 	else
 	  document.getElementById("suit"+i+dirs[0]).classList.remove("btn-info");
     mysuit=s;
-    if (mybid>=0) {
+    if (mybid!==null) {
 	removebtn();
 	bid(mybid,mysuit);
-	mybid=mysuit=-1;
+	mybid=mysuit=null;
     }
 }
 
@@ -430,21 +430,21 @@ function prebid(b) {
 	document.getElementById(bidlist[i]+dirs[0]).classList.remove("btn-info");
     document.getElementById("pass"+dirs[0]).classList.remove("btn-info");
     mybid=b;
-    if (mysuit>=0) {
+    if (mysuit!==null) {
 	removebtn();
 	bid(mybid,mysuit);
-	mybid=mysuit=-1;
+	mybid=mysuit=null;
     }
 }
 
 function bidpass() {
     bid("pass");
-    mybid=mysuit=-1;
+    mybid=mysuit=null;
 }
 
 function bidcoinche() {
     bid("coinche");
-    mybid=mysuit=-1;
+    mybid=mysuit=null;
 }    
 
 function bid(b,s) {
