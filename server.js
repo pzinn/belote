@@ -246,8 +246,10 @@ io.on("connection", function(socket) {
 	    }
 	}
     });
+    socket.on("auto", function(message) { // none of our business, send back to user
+	socket.emit("auto",message);
+    });
 });
-
 http.listen(PORT, function() {
     console.log("server started");
 });
@@ -336,7 +338,7 @@ function startRound(room) {
 	i = gameInfo[room].playerNames.indexOf(clientInfo[id].name);
 	if (i>=0) io.to(id).emit("hand", gameCards[room][i]);
     });
-    io.in(room).emit("startRound", gameInfo[room]); // send all the public info to clients
+    io.in(room).emit("gameInfo", gameInfo[room]); // send all the public info to clients
 }
 
 function endGame(room) {

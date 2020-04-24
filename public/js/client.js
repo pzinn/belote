@@ -14,7 +14,7 @@ var room = url.searchParams.get("room") || 'No Room Selected';
 var pos=-1; // my number in game
 var gameInfo=null; // public info on current game
 var hand=[]; // my hand
-var auto=(name[0]=="@"); // TEMP obviously
+var auto= name[0]=="@" ? "full" : "off" ;  // full = AI (random) bid/play; on = play if unique; off = don't automate
 var trickAnimation=false; // the little trick animation
 
 var dirs=["S","W","N","E"];
@@ -47,21 +47,23 @@ socket.on("connect", function() {
 	name: name,
 	room: room
     });
-    if (auto) {
+    if (auto=="full") {
     ready(true);
     document.getElementById("ready").checked=true;
     }
 });
 
 //
-function showAllowed() {
+function showAllowed() { // also, returns the number of allowed cards
+    var cnt=0;
     for (var i=0; i<8; i++) {
 	cardel=document.getElementById(dirs[0]+i);
-	if (validCard(gameInfo.playedCards,gameInfo.firstplayedCard,hand,gameInfo.trump,gameInfo.turn,+cardel.alt))
+	if (validCard(gameInfo.playedCards,gameInfo.firstplayedCard,hand,gameInfo.trump,gameInfo.turn,+cardel.alt)) {
 	    cardel.classList.add("active");
-	else
-	    cardel.classList.remove("active");	    
+	    cnt++;
+	} else cardel.classList.remove("active");
     }
+    return cnt;
 }
 
 function autoplay() {
@@ -232,25 +234,26 @@ function signalTurn() {
     }
 
     if (gameInfo.turn==pos) {
-	if (gameInfo.playing)
-	    if (auto) setTimeout(autoplay,gameInfo.firstplayedCard<0 ? 1500 : 500); else showAllowed(); // first card played slower
-	else if (gameInfo.bidding)
-	    if (auto) setTimeout(autobid,500); else {
-		for (i=0; i<4; i++)
-		{
-		    document.getElementById("suit"+i+dirs[0]).classList.remove("btn-primary");
-		    document.getElementById("suit"+i+dirs[0]).disabled=gameInfo.coinche;
-		}
-		for (i=0; i<bidlist.length; i++)
-		{
-		    document.getElementById(bidlist[i]+dirs[0]).classList.remove("btn-primary");
-		    document.getElementById(bidlist[i]+dirs[0]).disabled=gameInfo.coinche;
-		}
-		document.getElementById("pass"+dirs[0]).classList.remove("btn-primary");
-		document.getElementById("pass"+dirs[0]).disabled=false;
-		document.getElementById("coinche"+dirs[0]).disabled=(gameInfo.bidPlayer<0)||(((gameInfo.bidPlayer%2 == pos%2)||gameInfo.coinche)&&((gameInfo.bidPlayer%2 != pos%2)||!gameInfo.coinche||gameInfo.surcoinche));
-		mybid=mysuit=null;
+	if (gameInfo.playing) {
+	    var cnt=showAllowed();
+	    if ((auto=="full")||((auto=="on")&&(cnt==1)))
+		setTimeout(autoplay,gameInfo.firstplayedCard<0 ? 1500 : 500);  // first card played slower
+	} else if (gameInfo.bidding) {
+	    for (i=0; i<4; i++)
+	    {
+		document.getElementById("suit"+i+dirs[0]).classList.remove("btn-primary");
+		document.getElementById("suit"+i+dirs[0]).disabled=gameInfo.coinche;
 	    }
+	    for (i=0; i<bidlist.length; i++)
+	    {
+		document.getElementById(bidlist[i]+dirs[0]).classList.remove("btn-primary");
+		document.getElementById(bidlist[i]+dirs[0]).disabled=gameInfo.coinche;
+	    }
+		document.getElementById("pass"+dirs[0]).classList.remove("btn-primary");
+	    document.getElementById("pass"+dirs[0]).disabled=false;
+	    document.getElementById("coinche"+dirs[0]).disabled=(gameInfo.bidPlayer<0)||(((gameInfo.bidPlayer%2 == pos%2)||gameInfo.coinche)&&((gameInfo.bidPlayer%2 != pos%2)||!gameInfo.coinche||gameInfo.surcoinche));
+	    if (auto=="full") setTimeout(autobid,500); else mybid=mysuit=null;
+	}
     } else if (gameInfo.bidding) {
 	var i;
 	for (i=0; i<4; i++)
@@ -295,7 +298,7 @@ function displayScores() {
     }
 }
 
-socket.on("startRound", function(gameInfo1) {
+socket.on("gameInfo", function(gameInfo1) {
     var i;
     gameInfo=gameInfo1;
 
@@ -330,7 +333,7 @@ socket.on("startRound", function(gameInfo1) {
 	timestamp : moment().valueOf()
     }
     else message=welcomeText;
-    insertMessage(message,"");
+    insertMessage(message);
 
     drawCards();
 
@@ -346,7 +349,7 @@ socket.on("hand", function(h) {
 	name: "System",
 	timestamp : moment().valueOf()
     };
-    insertMessage(message,"");
+    insertMessage(message);
     // now pictures
     for (var i=0; i<8; i++)
     {
@@ -573,6 +576,16 @@ socket.on("message", function(message) {
 	};
 	socket.emit("userSeen", umsg);
     }
+});
+
+socket.on("auto", function(message) {
+    auto = message.arg;
+    var msg = {
+	arg: "Your auto mode is "+message.arg,
+	name: "System",
+	timestamp : moment().valueOf()
+    };
+    insertMessage(msg);
 });
 
 socket.on("endGame", function(gameInfo1) {

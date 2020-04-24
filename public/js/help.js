@@ -4,7 +4,8 @@ commands = [
     ["ready","[on/off]","Toggle your ready status"],
     ["bid","height suit","Bid"],
     ["partner","name","Pick your partner"],
-    ["play","?","Play a card"]
+    ["play","?","Play a card"],
+    ["auto","[on/off/full]","Toggle autoplay"]
 ];
 
 helpText="All commands must be preceded with @<br/>\n<ul>";
