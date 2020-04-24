@@ -1,1 +1,1 @@
-a simple implementation of coinche belote in node.js / javascript
+A simple implementation of the card game "belote coinchée" (or "coinche")  in node.js / javascript
