@@ -92,7 +92,7 @@ function start_playing(gameInfo,message) {
 }
 
 function process_bid(gameInfo,message) {
-    if ((gameInfo===null)||(!gameInfo.bidding)) return false; // not bidding
+    if ((!gameInfo)||(!gameInfo.started)||(!gameInfo.bidding)) return false; // not bidding
     var name=message.name;
     var i = gameInfo.playerNames.indexOf(name); // player number
     if (i != gameInfo.turn) return false; // bidding out of turn
@@ -138,7 +138,7 @@ function process_bid(gameInfo,message) {
 }
 
 function process_play(gameInfo,hand,message) { // if hand is null, means someone else is playing than client so ignore that part
-    if ((gameInfo===null)||(!gameInfo.playing)) return false; // not playing
+    if ((!gameInfo)||(!gameInfo.started)||(!gameInfo.playing)) return false; // not playing
     var name=message.name;
     var i = gameInfo.playerNames.indexOf(name); // player number
     if (i != gameInfo.turn) return false; // playing out of turn

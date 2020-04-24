@@ -1,5 +1,5 @@
 // - gracefully handle players leaving room
-// - make ready a playername option
+// right now ready is *not* preserved by reloading page
 // - potential improvement: only broadcast back client who sent can send to itself, cf
 // https://stackoverflow.com/questions/26324169/can-the-socket-io-client-emit-events-locally
 // - gameInfo should be objects with methods
@@ -17,9 +17,8 @@ const common = require('./public/js/common.js');
 const help = require('./public/js/help.js');
 
 var clientInfo = {}; // keys = socket ids
-var gameInfo = {}; // keys = room names
-var gameCards = {}; // keys = room names
-
+var gameInfo = {};   // public game info. keys = room names
+var gameCards = {};  // private game info. keys = room names
 
 // expose the folder via express thought
 app.use(express.static(__dirname + '/public'));
@@ -77,7 +76,7 @@ io.on("connection", function(socket) {
 	    arg: req.name + ' has joined',
 	    timestamp: moment().valueOf()
 	});
-	if (gameInfo[room]!==undefined) { // game already started
+	if ((typeof gameInfo[room] !== "undefined")&&(gameInfo[room].started)) { // game already started
 	    var i=gameInfo[room].playerNames.indexOf(req.name);
 	    if (i>=0) {
 		socket.emit("hand", gameCards[room][i]);
@@ -118,6 +117,7 @@ io.on("connection", function(socket) {
 	io.in(clientInfo[socket.id].room).emit("message", message);
     });
 
+    // list users in room
     socket.on("users", function() {
 	var info = clientInfo[socket.id];
 	var people = Object.keys(io.sockets.adapter.rooms[info.room].sockets);
@@ -139,45 +139,48 @@ io.on("connection", function(socket) {
 
     socket.on("ready", function(message) { // client says ready to start game (or not)
 	var room = clientInfo[socket.id].room;
+	var name = clientInfo[socket.id].name;
 	var flag = (message.arg!==false)&&(message.arg!="false");
-	if (gameInfo[room]!==undefined) { // game already started
+	if ((typeof gameInfo[room] !== "undefined")&&(gameInfo[room].started)) { // game already started
 		socket.emit("message", {
 		    name: "System",
 		    arg: "Game already started.",
 		    timestamp: moment().valueOf()
 		});
 	} else {
-	    if (clientInfo[socket.id].ready==flag) return;
-	    clientInfo[socket.id].ready=flag;
-	    var room=clientInfo[socket.id].room;
+	    if (typeof gameInfo[room] === "undefined") gameInfo[room]={};
+	    if (typeof gameInfo[room].playerNames === "undefined") gameInfo[room].playerNames=[]; // list of ready player names
+	    var i = gameInfo[room].playerNames.indexOf(name);
+	    if ((i>=0)==flag) return; // no change in ready status
+	    if (flag) gameInfo[room].playerNames.push(name);
+	    else gameInfo[room].playerNames.splice(i,1);
 	    var msg = flag ? " is ready" : " is not ready";
 	    io.in(room).emit("message", {
 		name: "Broadcast",
-		arg: clientInfo[socket.id].name+msg,
+		arg: name+msg,
 		timestamp: moment().valueOf()
 	    });
+	    // check if required number of players
+	    if (gameInfo[room].playerNames.length == 4)
+		startGame(room);
 	}
-	// check if required number of players TEMP do better
-	var people=Object.keys(io.sockets.adapter.rooms[room].sockets);
-	var n=0;
-	for (var i=0; i<people.length; i++)
-	    if (clientInfo[people[i]].ready) n++;
-	if (n==4) startGame(room);
     });
 
     socket.on("partner", function(message) {
 	var room = clientInfo[socket.id].room;
-	if (gameInfo[room]!==undefined) { // game already started
+	var name = clientInfo[socket.id].name;
+	if ((typeof gameInfo[room] !== "undefined")&&(gameInfo[room].started)) { // game already started
 		socket.emit("message", {
 		    name: "System",
 		    arg: "Game already started.",
 		    timestamp: moment().valueOf()
 		});
 	} else {
-	    clientInfo[socket.id].partner=message.arg;
+	    if (typeof gameInfo[room] === "undefined") gameInfo[room]={};
+	    gameInfo[room].partners = [name,message.arg]; // only a single partner request is stored
 	    io.in(room).emit("message", {
 		name: "Broadcast",
-		arg: clientInfo[socket.id].name+" wants to partner with "+message.arg,
+		arg: name+" wants to partner with "+message.arg,
 		timestamp: moment().valueOf()
 	    });
 	}
@@ -186,7 +189,7 @@ io.on("connection", function(socket) {
     socket.on("bid", function(message) { // arg should be [bid,suit] where bid = number or "pass"
 	var name = clientInfo[socket.id].name; // should be same as message.name
 	var room = clientInfo[socket.id].room;
-	if (typeof gameInfo[room] === "undefined") return;
+	if ((typeof gameInfo[room] === "undefined")||(!gameInfo[room].started))  return;
 	if (common.process_bid(gameInfo[room],message)) {
 	    io.in(room).emit("bid", message);
 	    if (gameInfo[room].bidPasses==4) { // nobody bid
@@ -218,7 +221,7 @@ io.on("connection", function(socket) {
     socket.on("play", function(message) { //	
 	var name = clientInfo[socket.id].name; // should be same as message.name
 	var room = clientInfo[socket.id].room;
-	if (typeof gameInfo[room] === "undefined") return;
+	if ((typeof gameInfo[room]==="undefined")||(!gameInfo[room].started))  return;
 	if (common.process_play(gameInfo[room],gameCards[room][gameInfo[room].turn],message)) {
 	    io.in(room).emit("play", message);
 	    // lots of messaging to do
@@ -251,34 +254,20 @@ http.listen(PORT, function() {
 
 
 function startGame(room) {
+    if ((typeof gameInfo[room] === "undefined")||(gameInfo[room].playerNames.length != 4)) return -1; // wrong number of players
     console.log("Game starting in room "+room);
-    gameInfo[room]={}; gameCards[room]=new Array(4);
-    var people=Object.keys(io.sockets.adapter.rooms[room].sockets);
-    var players=[];    // not stored in gameInfo because may change with time (reconnects)
-    var i,j,n=0;
-    for (i=0; i<people.length; i++)
-	if (clientInfo[people[i]].ready) {
-	    n++;
-	    players.push(people[i]);
+    gameInfo[room].started=true;
+    gameCards[room]=new Array(4);
+    if (typeof gameInfo[room].partners !== "undefined") {
+	// find partners
+	var i=gameInfo[room].playerNames.indexOf(gameInfo[room].partners[0]);
+	var j=gameInfo[room].playerNames.indexOf(gameInfo[room].partners[1]);
+	if ((i>=0)&&(j>=0)&&((j%2)!=(i%2))) { // need to swap
+	    var tmp = gameInfo[room].playerNames[j];
+	    gameInfo[room].playerNames[j]=gameInfo[room].playerNames[(i+2)%4];
+	    gameInfo[room].playerNames[(i+2)%4]=tmp;
 	}
-    if (n!=4) return -1; // wrong number of players
-
-    // only accept one partner request
-    i=0; var flag=false;
-    for (i=0; (i<4) && !flag; i++)
-	if (typeof clientInfo[players[i]].partner !== "undefined") {
-	    for (j=0; j<4; j++)
-		if ((j!=i)&&(clientInfo[players[j]].name == clientInfo[players[i]].partner)) {
-		    flag=true;
-		    if (j%2!=i%2) {
-			var tmp = players[j];
-			players[j]=players[(i+2)%4];
-			players[(i+2)%4]=tmp;
-		    }
-		}
-	}
-
-    gameInfo[room].playerNames=players.map(p=>clientInfo[p].name); // names shouldn't change (not very secure...)
+    }
     io.in(room).emit("message", {
 	name: "Broadcast",
 	arg: "Game starting! "+gameInfo[room].playerNames.join(),
@@ -294,16 +283,6 @@ function startGame(room) {
 
 function startRound(room) {
     console.log("Round starting in room "+room);
-    var people=Object.keys(io.sockets.adapter.rooms[room].sockets);
-    var players=new Array(4);    // not stored in gameInfo because may change with time (reconnects)
-    var i,j;
-    for (i=0; i<people.length; i++)
-    {
-	j=0;
-	while ((j<4)&&(clientInfo[people[i]].name!=gameInfo[room].playerNames[j])) j++;
-	if (j<4)
-	    players[j]=people[i];
-    }
 
     // shuffle cards -- correction, cut!
     var n=Math.floor(Math.random()*26)+3;
@@ -351,10 +330,10 @@ function startRound(room) {
     });
 
     // send the private info: hand
-    var people = Object.keys(io.sockets.adapter.rooms[info.room].sockets);
-    for (i=0; i<4; i++)
-	io.to(players[i]).emit("hand", gameCards[room][i]);
-
+    var people = Object.keys(io.sockets.adapter.rooms[room].sockets);
+    people.forEach(function(id) {
+	i = gameInfo[room].playerNames.indexOf(clientInfo[id].name);
+	if (i>=0) io.to(id).emit("hand", gameCards[room][i]);
+    });
     io.in(room).emit("gameInfo", gameInfo[room]); // send all the public info to clients
-
 }

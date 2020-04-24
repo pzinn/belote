@@ -1,4 +1,3 @@
-// - mark first player
 // - make suits bigger in chat
 // - say who trick goes to?
 // - undo?
@@ -163,7 +162,6 @@ function drawTricks() {
 function drawPlayedCard(i) {
     var k=(i+4-pos)%4; // position relative to me
     // the played cards
-    //	if ((oldgameInfo===null)||(gameInfo.playedCards[i]!==oldgameInfo.playedCards[i]))
     var cardel=document.getElementById(dirs[k]+"P");
     if (!(cardel.hidden=gameInfo.playedCards[i]<0))
     updatePic(cardel, // the played area
