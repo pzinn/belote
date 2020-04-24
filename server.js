@@ -138,35 +138,34 @@ io.on("connection", function(socket) {
 	});
     });
 
-    socket.on("ready", function(message) { // client says ready to start game (or not)
+    socket.on("ready", function(message) { // client says ready to start game (or not) OR wants to end game
 	var room = clientInfo[socket.id].room;
 	var name = clientInfo[socket.id].name;
-	var flag = (message.arg!==false)&&(message.arg!="false");
-	if ((typeof gameInfo[room] !== "undefined")&&(gameInfo[room].started)) { // game already started
-		socket.emit("message", {
-		    name: "System",
-		    arg: "Game already started.",
-		    timestamp: moment().valueOf()
-		});
-	} else {
-	    if (typeof gameInfo[room] === "undefined") gameInfo[room]={};
-	    if (typeof gameInfo[room].playerNames === "undefined") gameInfo[room].playerNames=[]; // list of ready player names
-	    var i = gameInfo[room].playerNames.indexOf(name);
-	    if ((i>=0)==flag) return; // no change in ready status
-	    if (flag) gameInfo[room].playerNames.push(name);
-	    else gameInfo[room].playerNames.splice(i,1);
-	    var msg = flag ? " is ready" : " is not ready";
-	    io.in(room).emit("message", {
-		name: "Broadcast",
-		arg: name+msg,
-		timestamp: moment().valueOf()
-	    });
-	    // check if required number of players
-	    if (gameInfo[room].playerNames.length == 4)
-		startGame(room);
-	}
-    });
+	var flag = (message.arg!==false)&&(message.arg!="false")&&(message.arg!="off");
 
+	if (typeof gameInfo[room] === "undefined") gameInfo[room]={};
+	if (typeof gameInfo[room].readyPlayerNames === "undefined") gameInfo[room].readyPlayerNames=[]; // list of ready player names
+	var i = gameInfo[room].readyPlayerNames.indexOf(name);
+	if ((i>=0)==flag) return; // no change in ready status
+
+	if (flag) gameInfo[room].readyPlayerNames.push(name);
+	else gameInfo[room].readyPlayerNames.splice(i,1);
+	var msg=name;
+	if (gameInfo[room].started) // game already started
+	    msg += (flag ? " no longer" : "") +" wants to end the game";
+	else
+	    msg += flag ? " is ready" : " is not ready";
+	io.in(room).emit("message", {
+	    name: "Broadcast",
+	    arg: msg,
+	    timestamp: moment().valueOf()
+	});
+	// check if required number of players
+	if (!gameInfo[room].started&&(gameInfo[room].readyPlayerNames.length == 4))
+	    startGame(room);
+	else if (gameInfo[room].started&&(gameInfo[room].readyPlayerNames.length == 0))
+	    endGame(room);
+    });
     socket.on("partner", function(message) {
 	var room = clientInfo[socket.id].room;
 	var name = clientInfo[socket.id].name;
@@ -232,7 +231,7 @@ io.on("connection", function(socket) {
 		    +gameInfo[room].playerNames[gameInfo[room].turn]+"'s turn",
 		timestamp: moment().valueOf()
 	    });
-	    if (Math.max(...gameInfo[room].numcards)==0) { // end of round
+	    if (Math.max(...gameInfo[room].numCards)==0) { // end of round
 		var msg = gameInfo[room].playerNames[0]+"/"+gameInfo[room].playerNames[2]+": "+gameInfo[room].roundScores[0]+" pts<br/>"
 		    +gameInfo[room].playerNames[1]+"/"+gameInfo[room].playerNames[3]+": "+gameInfo[room].roundScores[1]+" pts<br/>";
 		msg += gameInfo[room].bidSuccess ? "Bid successful<br/>" : "Bid unsuccessful<br/>";
@@ -255,7 +254,8 @@ http.listen(PORT, function() {
 
 
 function startGame(room) {
-    if ((typeof gameInfo[room] === "undefined")||(gameInfo[room].playerNames.length != 4)) return -1; // wrong number of players
+    if ((typeof gameInfo[room] === "undefined")||(gameInfo[room].readyPlayerNames.length != 4)) return -1; // wrong number of players
+    gameInfo[room].playerNames=gameInfo[room].readyPlayerNames.slice(); // make a copy
     console.log("Game starting in room "+room);
     gameInfo[room].started=true;
     gameCards[room]=new Array(4);
@@ -308,7 +308,7 @@ function startRound(room) {
 	gameCards[room][i].sort((a, b) => a - b);
 
     
-    gameInfo[room].numcards=[8,8,8,8];
+    gameInfo[room].numCards=[8,8,8,8];
     gameInfo[room].playedCards=[-1,-1,-1,-1];
     gameInfo[room].firstplayedCard=-1;
 
@@ -336,5 +336,23 @@ function startRound(room) {
 	i = gameInfo[room].playerNames.indexOf(clientInfo[id].name);
 	if (i>=0) io.to(id).emit("hand", gameCards[room][i]);
     });
-    io.in(room).emit("gameInfo", gameInfo[room]); // send all the public info to clients
+    io.in(room).emit("startRound", gameInfo[room]); // send all the public info to clients
+}
+
+function endGame(room) {
+    console.log("Game ending in room "+room);
+    gameInfo[room].started=gameInfo[room].playing=gameInfo[room].bidding=false;
+    gameInfo[room].playerNames=["","","",""];
+    gameInfo[room].tricks=[[],[],[],[]];
+    gameCards[room]=[[],[],[],[]];
+    gameInfo[room].numCards=[0,0,0,0];
+    gameInfo[room].startingPlayer=gameInfo[room].turn=-1;
+    // don't erase the scores yet
+    io.in(room).emit("message", {
+	name: "Broadcast",
+	arg: "Game ended",
+	timestamp: moment().valueOf()
+    });
+    // what else? say who won?
+    io.in(room).emit("endGame",gameInfo[room]);
 }

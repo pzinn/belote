@@ -49,7 +49,6 @@ socket.on("connect", function() {
     });
     if (auto) {
     ready(true);
-    document.getElementById("ready").disabled=true;
     document.getElementById("ready").checked=true;
     }
 });
@@ -146,7 +145,7 @@ function drawHandCards() {
 	if (i!=pos) // don't draw one's cards	    
 	    for (var j=0; j<8; j++)
 		updatePic(document.getElementById(dirs[k]+j),
-			  j<gameInfo.numcards[i] ? prefix+cols[i]+"_back.png" : prefix+"cardholder.png");
+			  j<gameInfo.numCards[i] ? prefix+cols[i]+"_back.png" : prefix+"cardholder.png");
     }
 }
 
@@ -296,7 +295,7 @@ function displayScores() {
     }
 }
 
-socket.on("gameInfo", function(gameInfo1) {
+socket.on("startRound", function(gameInfo1) {
     var i;
     gameInfo=gameInfo1;
 
@@ -310,10 +309,10 @@ socket.on("gameInfo", function(gameInfo1) {
 	document.getElementById("playedcards").classList.remove("trick","N","E","S","W");	
     }
     
-    document.getElementById("ready").disabled=true;
     // determine my number -- if I'm a player
     pos=gameInfo.playerNames.indexOf(name);
-    document.getElementById("ready").checked= (pos>=0);
+    document.getElementById("ready").checked= (pos>=0); // really?
+    document.getElementById("ready").disabled= (pos<0);
 
     writeNames();
 	
@@ -504,7 +503,7 @@ socket.on("play", function(message) {
 	    }
 	} else {
 	    // pick a random card? TODO
-	    var j=gameInfo.numcards[i];
+	    var j=gameInfo.numCards[i];
 	    updatePic(document.getElementById(dirs[k]+j),prefix+"cardholder.png");
 	}
 	// played card animation
@@ -533,7 +532,7 @@ socket.on("play", function(message) {
 	}
 	else drawPlayedCard(i);
 
-	if (Math.max(...gameInfo.numcards)==0) { // end of round: already display new scores
+	if (Math.max(...gameInfo.numCards)==0) { // end of round: already display new scores
 	    document.getElementById("totalscore1").innerHTML=gameInfo.totalScores[0];
 	    document.getElementById("totalscore2").innerHTML=gameInfo.totalScores[1];
 	    var el=document.getElementById("scores");
@@ -576,6 +575,15 @@ socket.on("message", function(message) {
     }
 });
 
+socket.on("endGame", function(gameInfo1) {
+    pos=-1;
+    gameInfo=gameInfo1;
+    drawBids();
+    writeNames();
+    drawCards();
+    drawPlayedCards();
+    signalTurn();
+});
 
 // lame conversion
 var escapeChars = {

@@ -151,7 +151,7 @@ function process_play(gameInfo,hand,message) { // if hand is null, means someone
 	// remove card from hand
 	hand.splice(k,1);
     }
-    gameInfo.numcards[i]--;
+    gameInfo.numCards[i]--;
     gameInfo.playedCards[i]=j;
     gameInfo.lastTrick=null; // only used in case of trick see below
 
@@ -170,7 +170,7 @@ function process_play(gameInfo,hand,message) { // if hand is null, means someone
 	gameInfo.playedCards=[-1,-1,-1,-1];
 	gameInfo.firstplayedCard=-1;
 	// is it last round?
-	if (gameInfo.numcards[0]==0) { // not great
+	if (gameInfo.numCards[0]==0) { // not great
 	    // score calculation
 	    gameInfo.roundScores=[0,0];
 	    gameInfo.roundScores[gameInfo.turn%2]=10; // 10 extra for last trick
