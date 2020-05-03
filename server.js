@@ -96,11 +96,13 @@ io.on("connection", function(socket) {
     // to show who is typing Message
 
     socket.on('typing', function(message) { // broadcast this message to all users in that room
+	if (!clientInfo[socket.id]) return;
 	socket.broadcast.to(clientInfo[socket.id].room).emit("typing", message);
     });
 
     // to check if user seen Message
     socket.on("userSeen", function(msg) {
+	if (!clientInfo[socket.id]) return;
 	socket.broadcast.to(clientInfo[socket.id].room).emit("userSeen", msg);
 	//socket.emit("message", msg);
 
@@ -114,12 +116,14 @@ io.on("connection", function(socket) {
 
     // listen for client message
     socket.on("message", function(message) {
+	if (!clientInfo[socket.id]) return;
 	console.log("Message Received : " + message.arg);
 	io.in(clientInfo[socket.id].room).emit("message", message);
     });
 
     // list users in room
     socket.on("users", function() {
+	if (!clientInfo[socket.id]) return;
 	var info = clientInfo[socket.id];
 	var people = Object.keys(io.sockets.adapter.rooms[info.room].sockets);
 	var names = people.map( id => clientInfo[id].name );
@@ -139,6 +143,7 @@ io.on("connection", function(socket) {
     });
 
     socket.on("ready", function(message) { // client says ready to start game (or not) OR wants to end game
+	if (!clientInfo[socket.id]) return;
 	var room = clientInfo[socket.id].room;
 	var name = clientInfo[socket.id].name;
 	var flag = (message.arg!==false)&&(message.arg!="false")&&(message.arg!="off");
@@ -167,6 +172,7 @@ io.on("connection", function(socket) {
 	    endGame(room);
     });
     socket.on("partner", function(message) {
+	if (!clientInfo[socket.id]) return;
 	var room = clientInfo[socket.id].room;
 	var name = clientInfo[socket.id].name;
 	if ((typeof gameInfo[room] !== "undefined")&&(gameInfo[room].started)) { // game already started
@@ -187,6 +193,7 @@ io.on("connection", function(socket) {
     });
 
     socket.on("bid", function(message) { // arg should be [bid,suit] where bid = number or "pass"
+	if (!clientInfo[socket.id]) return;
 	var name = clientInfo[socket.id].name; // should be same as message.name
 	var room = clientInfo[socket.id].room;
 	if ((typeof gameInfo[room] === "undefined")||(!gameInfo[room].started))  return;
@@ -219,6 +226,7 @@ io.on("connection", function(socket) {
     });
 
     socket.on("play", function(message) { //	
+	if (!clientInfo[socket.id]) return;
 	var name = clientInfo[socket.id].name; // should be same as message.name
 	var room = clientInfo[socket.id].room;
 	if ((typeof gameInfo[room]==="undefined")||(!gameInfo[room].started))  return;
@@ -247,6 +255,7 @@ io.on("connection", function(socket) {
 	}
     });
     socket.on("auto", function(message) { // none of our business, send back to user
+	if (!clientInfo[socket.id]) return;
 	socket.emit("auto",message);
     });
 });

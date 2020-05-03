@@ -1,3 +1,5 @@
+// - NEW BUGS
+// animation weird
 // - make suits bigger in chat
 // - say who trick goes to?
 // - undo?
@@ -237,7 +239,7 @@ function signalTurn() {
 	if (gameInfo.playing) {
 	    var cnt=showAllowed();
 	    if ((auto=="full")||((auto=="on")&&(cnt==1)))
-		setTimeout(autoplay,gameInfo.firstplayedCard<0 ? 1500 : 500);  // first card played slower
+		setTimeout(autoplay,gameInfo.firstplayedCard<0 ? 1500 : 750);  // first card played slower
 	} else if (gameInfo.bidding) {
 	    for (i=0; i<4; i++)
 	    {
@@ -252,7 +254,7 @@ function signalTurn() {
 		document.getElementById("pass"+dirs[0]).classList.remove("btn-primary");
 	    document.getElementById("pass"+dirs[0]).disabled=false;
 	    document.getElementById("coinche"+dirs[0]).disabled=(gameInfo.bidPlayer<0)||(((gameInfo.bidPlayer%2 == pos%2)||gameInfo.coinche)&&((gameInfo.bidPlayer%2 != pos%2)||!gameInfo.coinche||gameInfo.surcoinche));
-	    if (auto=="full") setTimeout(autobid,500); else mybid=mysuit=null;
+	    if (auto=="full") setTimeout(autobid,750); else mybid=mysuit=null;
 	}
     } else if (gameInfo.bidding) {
 	var i;
@@ -513,6 +515,7 @@ socket.on("play", function(message) {
 	cardel=document.getElementById(dirs[k]+"P");
 	cardel.style.transition="none";
 	cardel.style.transform=cardTransform[k];
+	if (trickAnimation) document.getElementById("playedcards").classList.remove("trick","N","E","S","W"); // fix for annoying lack of animation problem issue
 	setTimeout(function(k){
 	    cardel=document.getElementById(dirs[k]+"P");
 	    cardel.style.transition="transform 0.5s linear";
@@ -522,7 +525,6 @@ socket.on("play", function(message) {
 	    gameInfo.playedCards[i]=gameInfo.lastTrick[i]; // eww
 	    drawPlayedCard(i);
 	    gameInfo.playedCards[i]=-1; // eww
-	    if (trickAnimation) document.getElementById("playedcards").classList.remove("trick","N","E","S","W"); // fix for annoying lack of animation problem issue
 	    setTimeout( function() {
 //	    document.getElementById("playedcards").addEventListener("transitionend", function() {
 		trickAnimation=false;
@@ -580,8 +582,9 @@ socket.on("message", function(message) {
 
 socket.on("auto", function(message) {
     auto = message.arg;
+    if ((auto!="off")&&(auto!="full")) auto="on"; // default
     var msg = {
-	arg: "Your auto mode is "+message.arg,
+	arg: "Your auto mode is "+auto,
 	name: "System",
 	timestamp : moment().valueOf()
     };
