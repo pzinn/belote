@@ -21,6 +21,20 @@ var clientInfo = {}; // keys = socket ids
 var gameInfo = {};   // public game info. keys = room names
 var gameCards = {};  // private game info. keys = room names
 
+// logging
+const winston = require("winston");
+const loggerSettings = {
+    transports: [new winston.transports.Console()],
+    format: winston.format.combine(
+	winston.format.timestamp({format:'YYYY-MM-DD HH:mm:ss'}),
+	winston.format.printf(info => `${info.timestamp} [${info.level}] ${info.message}`)
+    )
+};
+const logger = winston.createLogger(loggerSettings);
+const expressWinston = require("express-winston");
+//app.use(expressWinston.logger(loggerSettings));
+app.use(expressWinston.logger({winstonInstance: logger}));
+
 // expose the folder via express thought
 app.use(express.static(__dirname + '/public'));
 
@@ -35,7 +49,7 @@ function shuffleArray(array) {
 
 // io.on listens for events
 io.on("connection", function(socket) {
-    console.log("User "+socket.id+" is connected");
+    logger.info("User "+socket.id+" is connected");
 
     //for disconnection
     socket.on("disconnect", function() {
@@ -117,7 +131,7 @@ io.on("connection", function(socket) {
     // listen for client message
     socket.on("message", function(message) {
 	if (!clientInfo[socket.id]) return;
-	console.log("Message Received : " + message.arg);
+	logger.info("Message Received : " + message.arg);
 	io.in(clientInfo[socket.id].room).emit("message", message);
     });
 
@@ -260,14 +274,14 @@ io.on("connection", function(socket) {
     });
 });
 http.listen(PORT, function() {
-    console.log("server started");
+    logger.info("server started");
 });
 
 
 function startGame(room) {
     if ((typeof gameInfo[room] === "undefined")||(gameInfo[room].readyPlayerNames.length != 4)) return -1; // wrong number of players
     gameInfo[room].playerNames=gameInfo[room].readyPlayerNames.slice(); // make a copy
-    console.log("Game starting in room "+room);
+    logger.info("Game starting in room "+room);
     gameInfo[room].started=true;
     gameCards[room]=new Array(4);
     if (typeof gameInfo[room].partners !== "undefined") {
@@ -294,7 +308,7 @@ function startGame(room) {
 }
 
 function startRound(room) {
-    console.log("Round starting in room "+room);
+    logger.info("Round starting in room "+room);
 
     // shuffle cards -- correction, cut!
     var n=Math.floor(Math.random()*26)+3;
@@ -351,7 +365,7 @@ function startRound(room) {
 }
 
 function endGame(room) {
-    console.log("Game ending in room "+room);
+    logger.info("Game ending in room "+room);
     gameInfo[room].started=gameInfo[room].playing=gameInfo[room].bidding=false;
     gameInfo[room].playerNames=["","","",""];
     gameInfo[room].tricks=[[],[],[],[]];
