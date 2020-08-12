@@ -274,7 +274,7 @@ io.on("connection", function(socket) {
     });
 });
 http.listen(PORT, function() {
-    logger.info("server started");
+    logger.info("server started on port "+PORT);
 });
 
 
